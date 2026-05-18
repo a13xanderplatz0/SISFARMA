@@ -1,4 +1,4 @@
--- Creación de la base de datos de Farmacia (MySQL)
+
 
 CREATE TABLE CATEGORIA (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
