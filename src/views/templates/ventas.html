@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas | SISFARMA{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+    <h2>Registro de Ventas</h2>
+    <button class="btn-primary" onclick="abrirModal('modalNuevaVenta')">+ Nueva Venta</button>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>N° Boleta/Venta</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Atendido por</th>
+            <th>Total (S/)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for venta in ventas %}
+        <tr>
+            <td>#VN-{{ "%04d"|format(venta.id_venta) }}</td>
+            <td>{{ venta.fecha }}</td>
+            <td><strong>{{ venta.cliente_nombre }}</strong></td>
+            <td>{{ venta.usuario_nombre }}</td>
+            <td><strong>S/ {{ "%.2f"|format(venta.total) }}</strong></td>
+            <td>
+                <button class="btn-secondary">Ver Detalle</button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="empty-state">No hay ventas registradas el día de hoy.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div id="modalNuevaVenta" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Registrar Venta</h3>
+            <span class="close-btn" onclick="cerrarModal('modalNuevaVenta')">&times;</span>
+        </div>
+        <form action="/ventas/nueva" method="POST">
+            <div class="form-group">
+                <label>Cliente</label>
+                <select name="id_cliente" required>
+                    <option value="">Seleccione un cliente...</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Medicamento a vender</label>
+                <select name="id_medicamento" required>
+                    <option value="">Seleccione el producto...</option>
+                    {% for med in medicamentos %}
+                        <option value="{{ med.id_medicamento }}">{{ med.nombre }} - S/ {{ med.precio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input type="number" name="cantidad" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select name="metodo_pago" required>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Yape">Yape / Plin</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevaVenta')">Cancelar</button>
+                <button type="submit" class="btn-primary">Confirmar Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModal(idModal) { document.getElementById(idModal).style.display = 'flex'; }
+    function cerrarModal(idModal) { document.getElementById(idModal).style.display = 'none'; }
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) modals[i].style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

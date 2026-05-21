@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Compras | SISFARMA{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+    <h2>Órdenes de Compra a Proveedores</h2>
+    <button class="btn-primary" onclick="abrirModal('modalNuevaCompra')">+ Nueva Orden</button>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID Orden</th>
+            <th>Fecha Solicitud</th>
+            <th>Proveedor</th>
+            <th>Generada por</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for compra in compras %}
+        <tr>
+            <td>#OC-{{ "%04d"|format(compra.id_compra) }}</td>
+            <td>{{ compra.fecha }}</td>
+            <td><strong>{{ compra.proveedor_nombre }}</strong></td>
+            <td>{{ compra.usuario_nombre }}</td>
+            
+            <td>
+                {% if compra.estado == 'recibida' %}
+                    <span class="tag" style="background: #e8f5e9; color: #2e7d32;">Recibida</span>
+                {% elif compra.estado == 'pendiente' %}
+                    <span class="tag" style="background: #fff8e1; color: #f57f17;">Pendiente</span>
+                {% else %}
+                    <span class="tag" style="background: #ffebee; color: #c62828;">Anulada</span>
+                {% endif %}
+            </td>
+            
+            <td>
+                <button class="btn-secondary">Ver Items</button>
+                {% if compra.estado == 'pendiente' %}
+                    <button class="btn-edit" title="Marcar como recibida">✓ Recibir</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="empty-state">No hay órdenes de compra registradas.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div id="modalNuevaCompra" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Generar Orden de Compra</h3>
+            <span class="close-btn" onclick="cerrarModal('modalNuevaCompra')">&times;</span>
+        </div>
+        <form action="/compras/nueva" method="POST">
+            <div class="form-group">
+                <label>Proveedor / Laboratorio</label>
+                <select name="id_proveedor" required>
+                    <option value="">Seleccione el proveedor...</option>
+                    {% for prov in proveedores %}
+                        <option value="{{ prov.id_proveedor }}">{{ prov.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Estado Inicial</label>
+                    <select name="estado" required>
+                        <option value="pendiente" selected>Pendiente (Por recibir)</option>
+                        <option value="recibida">Recibida (Ingreso directo)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Pedido</label>
+                    <input type="date" name="fecha" required>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevaCompra')">Cancelar</button>
+                <button type="submit" class="btn-primary">Generar Orden</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModal(idModal) { document.getElementById(idModal).style.display = 'flex'; }
+    function cerrarModal(idModal) { document.getElementById(idModal).style.display = 'none'; }
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) modals[i].style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

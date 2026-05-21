@@ -15,10 +15,10 @@
             <nav>
                 <ul>
                     <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/ventas">Ventas</a></li>
+                    <li><a href="/ventas" class="{{ 'active' if request.path.startswith('/ventas') else '' }}">Ventas</a></li>
                     <li><a href="/medicamentos" class="{{ 'active' if request.path.startswith('/medicamentos') else '' }}">Medicamentos</a></li>
                     <li><a href="/inventario" class="{{ 'active' if request.path.startswith('/inventario') else '' }}">Inventario</a></li>
-                    <li><a href="/compras">Compras</a></li>
+                    <li><a href="/compras" class="{{ 'active' if request.path.startswith('/compras') else '' }}">Compras</a></li>
                 </ul>
             </nav>
         </aside>
