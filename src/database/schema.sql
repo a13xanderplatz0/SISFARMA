@@ -168,3 +168,10 @@ INSERT INTO COMPRA (id_compra, fecha, estado, id_proveedor, id_usuario) VALUES
 (3, '2026-05-21', 'anulada', 3, 3),    -- Compra a BioGénesis registrada por Luis
 (4, '2026-05-22', 'recibida', 4, 4),   -- Compra a PharmaNorte registrada por María
 (5, '2026-05-23', 'pendiente', 5, 2);  -- Compra a Suministros Globales registrada por Ana
+
+INSERT INTO CATEGORIA (nombre) VALUES
+('Analgesicos'),
+('Antibioticos'),
+('Antiinflamatorios'),
+('Vitaminas'),
+('Jarabes');
