@@ -223,3 +223,12 @@ INSERT INTO HISTORIAL_VENTA (descripcion, id_cliente, id_venta) VALUES
 UPDATE CLIENTE 
 SET telefono = '999111222', direccion = 'Av. Siempre Viva 742'
 WHERE id_cliente = 1;
+
+
+UPDATE INVENTARIO 
+SET stock = stock + 50 
+WHERE numero_lote = 'LOT002' AND id_medicamento = 2;
+
+UPDATE COMPRA 
+SET estado = 'recibida' 
+WHERE id_compra = 2;
