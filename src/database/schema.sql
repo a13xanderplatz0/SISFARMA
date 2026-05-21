@@ -147,3 +147,24 @@ CREATE TABLE REPORTE (
     CONSTRAINT fk_reporte_usuario
         FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO USUARIO (id_usuario, nombre, rol, contrasena, id_supervisor) VALUES
+(1, 'Carlos Mendoza', 'Administrador', '$2y$10$E9dfX8yKj92...', NULL),
+(2, 'Ana Gómez', 'Farmacéutico', '$2y$10$R7tY1vOpQm3...', 1),
+(3, 'Luis Torres', 'Farmacéutico', '$2y$10$Z4vWp2nLm90...', 1),
+(4, 'María Delgado', 'Farmacéutico', '$2y$10$X9wK2bN1mOp...', 1),
+(5, 'Jorge Ramírez', 'Administrador', '$2y$10$P3qL7vT5xZm...', 2);
+
+INSERT INTO PROVEEDOR (id_proveedor, nombre, telefono, direccion) VALUES
+(1, 'Droguería FarmaSalud S.A.', '+51 987654321', 'Av. De la Salud 123, Lima'),
+(2, 'Laboratorios Medicor', '+51 912345678', 'Calle Industrial 456, Arequipa'),
+(3, 'Distribuidora BioGénesis', '+51 934567890', 'Jr. Los Olivos 789, Trujillo'),
+(4, 'PharmaNorte Perú', '+51 945678123', 'Av. Central 990, Chiclayo'),
+(5, 'Suministros Médicos Globales', '+51 956789456', 'Calle Las Magnolias 105, Cusco');
+
+INSERT INTO COMPRA (id_compra, fecha, estado, id_proveedor, id_usuario) VALUES
+(1, '2026-05-10', 'recibida', 1, 1),   -- Compra a FarmaSalud registrada por Carlos
+(2, '2026-05-18', 'pendiente', 2, 2),  -- Compra a Medicor registrada por Ana
+(3, '2026-05-21', 'anulada', 3, 3),    -- Compra a BioGénesis registrada por Luis
+(4, '2026-05-22', 'recibida', 4, 4),   -- Compra a PharmaNorte registrada por María
+(5, '2026-05-23', 'pendiente', 5, 2);  -- Compra a Suministros Globales registrada por Ana
