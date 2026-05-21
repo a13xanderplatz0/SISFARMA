@@ -189,3 +189,10 @@ INSERT INTO LOTE (numero_lote, id_medicamento, fecha_vencimiento) VALUES
 ('LOT003', 3, '2027-03-15'),
 ('LOT004', 4, '2028-01-20'),
 ('LOT005', 5, '2026-11-30');
+
+INSERT INTO INVENTARIO (stock, stock_minimo, numero_lote, id_medicamento) VALUES
+(100, 20, 'LOT001', 1),
+(50, 10, 'LOT002', 2),
+(75, 15, 'LOT003', 3),
+(120, 25, 'LOT004', 4),
+(40, 10, 'LOT005', 5);
