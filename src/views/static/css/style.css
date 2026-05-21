@@ -1,0 +1,65 @@
+/* Variables y reseteo básico */
+:root {
+    --primary-color: #0056b3;
+    --bg-color: #f4f6f9;
+    --sidebar-bg: #1a2226;
+    --text-color: #333;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body { background-color: var(--bg-color); color: var(--text-color); }
+
+/* Layout principal */
+.dashboard-container { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar { width: 250px; background: var(--sidebar-bg); color: white; padding-top: 20px; }
+.logo { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 30px; }
+.sidebar ul { list-style: none; }
+.sidebar a { display: block; padding: 15px 20px; color: #b8c7ce; text-decoration: none; transition: 0.3s; }
+.sidebar a:hover, .sidebar a.active { background: #1e282c; color: white; border-left: 4px solid var(--primary-color); }
+
+/* Contenido Principal */
+.main-content { flex: 1; display: flex; flex-direction: column; }
+header { background: white; padding: 15px 30px; display: flex; justify-content: flex-end; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.content-body { padding: 30px; }
+.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+/* Botones */
+button { cursor: pointer; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-secondary { background: #e0e0e0; color: #333; }
+.btn-edit { background: #f39c12; color: white; }
+.btn-delete { background: #e74c3c; color: white; }
+
+/* Tablas */
+.data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+.data-table th, .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+.data-table th { background: #f8f9fa; font-weight: 600; }
+.tag { background: #e1f5fe; color: #0288d1; padding: 3px 8px; border-radius: 12px; font-size: 0.85rem; }
+
+/* VENTANA MODAL (El "Pop-up") */
+.modal-overlay {
+    display: none; /* Oculto por defecto */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+    background: white; padding: 25px; border-radius: 8px; width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.close-btn { font-size: 24px; cursor: pointer; color: #999; }
+.close-btn:hover { color: #333; }
+
+/* Formularios dentro del Modal */
+.form-group { margin-bottom: 15px; }
+.form-row { display: flex; gap: 15px; }
+.form-row .form-group { flex: 1; }
+label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }

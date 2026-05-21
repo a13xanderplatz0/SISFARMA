@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario | SISFARMA{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+    <h2>Control de Inventario y Lotes</h2>
+    <button class="btn-primary" onclick="abrirModal('modalAjusteStock')">+ Registrar Ingreso</button>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Medicamento</th>
+            <th>Lote</th>
+            <th>Stock Actual</th>
+            <th>Stock Mínimo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in inventario %}
+        <tr>
+            <td>{{ item.id_inventario }}</td>
+            <td><strong>{{ item.medicamento_nombre }}</strong></td>
+            <td>{{ item.numero_lote }}</td>
+            
+            <td>
+                {% if item.stock == 0 %}
+                    <span style="color: #c62828; font-weight: bold;">{{ item.stock }} un.</span>
+                {% elif item.stock <= item.stock_minimo %}
+                    <span style="color: #ef6c00; font-weight: bold;">{{ item.stock }} un.</span>
+                {% else %}
+                    <span>{{ item.stock }} un.</span>
+                {% endif %}
+            </td>
+            
+            <td>{{ item.stock_minimo }} un.</td>
+            
+            <td>
+                {% if item.stock == 0 %}
+                    <span class="tag" style="background: #ffebee; color: #c62828;">Agotado</span>
+                {% elif item.stock <= item.stock_minimo %}
+                    <span class="tag" style="background: #fff3e0; color: #ef6c00;">Stock Bajo</span>
+                {% else %}
+                    <span class="tag" style="background: #e8f5e9; color: #2e7d32;">Normal</span>
+                {% endif %}
+            </td>
+            
+            <td>
+                <button class="btn-edit">Ajustar</button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="empty-state">No hay registros de inventario actuales.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div id="modalAjusteStock" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Registrar Ingreso de Stock</h3>
+            <span class="close-btn" onclick="cerrarModal('modalAjusteStock')">&times;</span>
+        </div>
+        <form action="/inventario/ingreso" method="POST">
+            <div class="form-group">
+                <label>Medicamento y Lote</label>
+                <select name="id_inventario" required>
+                    <option value="">Seleccione el lote a actualizar...</option>
+                    {% for item in inventario %}
+                        <option value="{{ item.id_inventario }}">
+                            {{ item.medicamento_nombre }} - Lote: {{ item.numero_lote }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cantidad a Ingresar</label>
+                    <input type="number" name="cantidad_ingreso" min="1" required placeholder="Ej. 50">
+                </div>
+                <div class="form-group">
+                    <label>Motivo</label>
+                    <select name="motivo" required>
+                        <option value="compra">Compra a Proveedor</option>
+                        <option value="devolucion">Devolución de Cliente</option>
+                        <option value="ajuste">Ajuste Manual</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalAjusteStock')">Cancelar</button>
+                <button type="submit" class="btn-primary">Actualizar Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModal(idModal) {
+        document.getElementById(idModal).style.display = 'flex';
+    }
+
+    function cerrarModal(idModal) {
+        document.getElementById(idModal).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) {
+                modals[i].style.display = "none";
+            }
+        }
+    }
+</script>
+{% endblock %}

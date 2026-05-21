@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Medicamentos | SISFARMA{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+    <h2>Catálogo de Medicamentos</h2>
+    <button class="btn-primary" onclick="abrirModal('modalNuevoMedicamento')">+ Nuevo Medicamento</button>
+</div>
+
+<!-- Tabla de datos procesada por Jinja2 -->
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio (S/)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for medicamento in medicamentos %}
+        <tr>
+            <td>{{ medicamento.id_medicamento }}</td>
+            <td><strong>{{ medicamento.nombre }}</strong><br><small>{{ medicamento.descripcion }}</small></td>
+            <td><span class="tag">{{ medicamento.categoria_nombre }}</span></td>
+            <td>S/ {{ "%.2f"|format(medicamento.precio) }}</td>
+            <td>
+                <button class="btn-edit">Editar</button>
+                <button class="btn-delete">Eliminar</button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" class="empty-state">No hay medicamentos registrados en el sistema.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- VENTANA MODAL (Oculta por defecto) -->
+<div id="modalNuevoMedicamento" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Registrar Medicamento</h3>
+            <span class="close-btn" onclick="cerrarModal('modalNuevoMedicamento')">&times;</span>
+        </div>
+        <form action="/medicamentos/nuevo" method="POST">
+            <div class="form-group">
+                <label>Nombre del Medicamento</label>
+                <input type="text" name="nombre" required placeholder="Ej. Paracetamol 500mg">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio de Venta</label>
+                    <input type="number" step="0.01" name="precio" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select name="id_categoria" required>
+                        <option value="">Seleccione...</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.id_categoria }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" rows="3"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevoMedicamento')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lógica JavaScript para las ventanas -->
+<script>
+    function abrirModal(idModal) {
+        document.getElementById(idModal).style.display = 'flex';
+    }
+
+    function cerrarModal(idModal) {
+        document.getElementById(idModal).style.display = 'none';
+    }
+
+    // Cerrar modal al hacer clic fuera del cuadro
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) {
+                modals[i].style.display = "none";
+            }
+        }
+    }
+</script>
+{% endblock %}

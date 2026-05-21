@@ -4,10 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SISFARMA{% endblock %}</title>
+    <!-- Asumiendo que usas Flask/FastAPI, así se llama al CSS en Jinja2 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    {% block content %}{% endblock %}
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <div class="dashboard-container">
+        <!-- Sidebar de Navegación -->
+        <aside class="sidebar">
+            <div class="logo">💊 SISFARMA</div>
+            <nav>
+                <ul>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/ventas">Ventas</a></li>
+                    <li><a href="/medicamentos" class="{{ 'active' if request.path.startswith('/medicamentos') else '' }}">Medicamentos</a></li>
+                    <li><a href="/inventario" class="{{ 'active' if request.path.startswith('/inventario') else '' }}">Inventario</a></li>
+                    <li><a href="/compras">Compras</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Contenido Dinámico -->
+        <main class="main-content">
+            <header>
+                <div class="user-info">
+                    <span>Bienvenido, {{ current_user.nombre }}</span>
+                    <span class="role-badge">{{ current_user.rol }}</span>
+                </div>
+            </header>
+            
+            <section class="content-body">
+                <!-- Aquí se inyectará el código de medicamentos.html -->
+                {% block content %}{% endblock %}
+            </section>
+        </main>
+    </div>
 </body>
 </html>
