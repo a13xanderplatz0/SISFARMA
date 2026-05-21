@@ -149,7 +149,7 @@ CREATE TABLE REPORTE (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO USUARIO (id_usuario, nombre, rol, contrasena, id_supervisor) VALUES
-(1, 'Carlos Mendoza', 'Administrador', '$2y$10$E9dfX8yKj92...', NULL),
+(1, 'alex', 'Administrador', '1234', NULL),
 (2, 'Ana Gómez', 'Farmacéutico', '$2y$10$R7tY1vOpQm3...', 1),
 (3, 'Luis Torres', 'Farmacéutico', '$2y$10$Z4vWp2nLm90...', 1),
 (4, 'María Delgado', 'Farmacéutico', '$2y$10$X9wK2bN1mOp...', 1),

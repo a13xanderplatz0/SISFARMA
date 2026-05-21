@@ -14,11 +14,15 @@
             <div class="logo">💊 SISFARMA</div>
             <nav>
                 <ul>
-                    <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/ventas" class="{{ 'active' if request.path.startswith('/ventas') else '' }}">Ventas</a></li>
-                    <li><a href="/medicamentos" class="{{ 'active' if request.path.startswith('/medicamentos') else '' }}">Medicamentos</a></li>
-                    <li><a href="/inventario" class="{{ 'active' if request.path.startswith('/inventario') else '' }}">Inventario</a></li>
-                    <li><a href="/compras" class="{{ 'active' if request.path.startswith('/compras') else '' }}">Compras</a></li>
+                    <li><a href="/ventas">Ventas</a></li>
+                    <li><a href="/inventario">Inventario</a></li>
+                    
+                    {% if session.usuario.rol == 'Administrador' %}
+                        <li><a href="/medicamentos">Medicamentos</a></li>
+                        <li><a href="/compras">Compras a Proveedores</a></li>
+                        <li><a href="/usuarios">Personal</a></li>
+                        <li><a href="/reportes">Reportes</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </aside>
@@ -29,6 +33,7 @@
                 <div class="user-info">
                     <span>Bienvenido, {{ current_user.nombre }}</span>
                     <span class="role-badge">{{ current_user.rol }}</span>
+                    <a href="{{ url_for('auth_ctrl.logout') }}" style="margin-left: 12px; color: #c62828;">Cerrar sesión</a>
                 </div>
             </header>
             

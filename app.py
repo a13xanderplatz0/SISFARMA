@@ -1,14 +1,33 @@
-from flask import Flask, render_template, request, redirect
-# Asumiendo que tienes un archivo donde manejas tus SELECTs a MySQL
-# from database import obtener_medicamentos_con_categorias, obtener_todas_las_categorias
+import os
+
+from flask import Flask, render_template, request, redirect, session, url_for
+
+from src.controllers.auth_controller import auth_ctrl, usuario_actual
 
 app = Flask(
     __name__,
     template_folder='src/views/templates',
     static_folder='src/views/static',
 )
+app.secret_key = os.environ.get("SECRET_KEY", "sisfarma-dev-secret")
+app.register_blueprint(auth_ctrl)
 
-USUARIO_SESION = {"nombre": "Carlos Mendoza", "rol": "Administrador"}
+
+@app.before_request
+def proteger_rutas():
+    """Todas las rutas requieren login, excepto login y archivos estáticos."""
+    if request.endpoint in (None, "static", "auth_ctrl.login"):
+        return
+    if not session.get("usuario"):
+        return redirect(url_for("auth_ctrl.login"))
+
+
+@app.context_processor
+def inyectar_usuario():
+    u = usuario_actual()
+    if u:
+        return {"current_user": u}
+    return {"current_user": {"nombre": "Invitado", "rol": "-"}}
 
 MEDICAMENTOS_DB = [
     {"id_medicamento": 1, "nombre": "Paracetamol 500mg", "descripcion": "Alivia dolor y fiebre", "categoria_nombre": "Analgésicos", "precio": 5.50},
@@ -37,7 +56,11 @@ PROVEEDORES_DB = [
 
 @app.route('/')
 def inicio():
-    return redirect('/medicamentos')
+    if session.get("usuario"):
+        if session["usuario"]["rol"] == "Administrador":
+            return redirect("/medicamentos")
+        return redirect("/ventas")
+    return redirect("/login")
 
 
 @app.route('/medicamentos')
@@ -51,7 +74,6 @@ def catalogo_medicamentos():
         'medicamentos.html',
         medicamentos=MEDICAMENTOS_DB,
         categorias=categorias_db,
-        current_user=USUARIO_SESION,
     )
 
 
@@ -79,7 +101,6 @@ def inventario():
     return render_template(
         'inventario.html',
         inventario=inventario_db,
-        current_user=USUARIO_SESION,
     )
 
 
@@ -109,7 +130,6 @@ def ventas():
         ventas=ventas_db,
         clientes=CLIENTES_DB,
         medicamentos=MEDICAMENTOS_DB,
-        current_user=USUARIO_SESION,
     )
 
 
@@ -139,7 +159,6 @@ def compras():
         'compras.html',
         compras=compras_db,
         proveedores=PROVEEDORES_DB,
-        current_user=USUARIO_SESION,
     )
 
 
