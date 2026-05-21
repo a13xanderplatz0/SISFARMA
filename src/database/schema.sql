@@ -175,3 +175,10 @@ INSERT INTO CATEGORIA (nombre) VALUES
 ('Antiinflamatorios'),
 ('Vitaminas'),
 ('Jarabes');
+
+INSERT INTO MEDICAMENTO (nombre, precio, descripcion, id_categoria) VALUES
+('Paracetamol 500mg', 5.50, 'Alivia dolor y fiebre', 1),
+('Amoxicilina 500mg', 12.90, 'Antibiótico de amplio espectro', 2),
+('Ibuprofeno 400mg', 8.70, 'Antiinflamatorio y analgésico', 3),
+('Vitamina C', 15.00, 'Suplemento vitamínico', 4),
+('Jarabe para la tos', 18.50, 'Jarabe expectorante', 5);
