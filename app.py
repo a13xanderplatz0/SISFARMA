@@ -1,33 +1,17 @@
 import os
 
-from flask import Flask, render_template, request, redirect, session, url_for
-
-from src.controllers.auth_controller import auth_ctrl, usuario_actual
+from flask import Flask, render_template, request, redirect
 
 app = Flask(
     __name__,
     template_folder='src/views/templates',
     static_folder='src/views/static',
 )
-app.secret_key = os.environ.get("SECRET_KEY", "sisfarma-dev-secret")
-app.register_blueprint(auth_ctrl)
-
-
-@app.before_request
-def proteger_rutas():
-    """Todas las rutas requieren login, excepto login y archivos estáticos."""
-    if request.endpoint in (None, "static", "auth_ctrl.login"):
-        return
-    if not session.get("usuario"):
-        return redirect(url_for("auth_ctrl.login"))
 
 
 @app.context_processor
 def inyectar_usuario():
-    u = usuario_actual()
-    if u:
-        return {"current_user": u}
-    return {"current_user": {"nombre": "Invitado", "rol": "-"}}
+    return {"current_user": {"nombre": "Carlos Mendoza", "rol": "Administrador"}}
 
 MEDICAMENTOS_DB = [
     {"id_medicamento": 1, "nombre": "Paracetamol 500mg", "descripcion": "Alivia dolor y fiebre", "categoria_nombre": "Analgésicos", "precio": 5.50},
@@ -56,11 +40,7 @@ PROVEEDORES_DB = [
 
 @app.route('/')
 def inicio():
-    if session.get("usuario"):
-        if session["usuario"]["rol"] == "Administrador":
-            return redirect("/medicamentos")
-        return redirect("/ventas")
-    return redirect("/login")
+    return redirect('/medicamentos')
 
 
 @app.route('/medicamentos')
