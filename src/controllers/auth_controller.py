@@ -28,32 +28,34 @@ def usuario_actual():
     return {"nombre": u["nombre"], "rol": u["rol"]}
 
 
-@auth_ctrl.route("/login", methods=["GET", "POST"])
+@auth_ctrl.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "GET":
-        if session.get("usuario"):
-            if session["usuario"]["rol"] == "Administrador":
-                return redirect("/medicamentos")
-            return redirect("/ventas")
-        return render_template("login.html")
-
-    nombre = request.form["nombre"]
-    contrasena = request.form["contrasena"]
-
+    if request.method == 'GET':
+        return render_template('login.html')
+    
+    nombre = request.form['nombre']
+    contrasena = request.form['contrasena']
+    
     usuario_db = buscar_usuario_por_nombre(nombre)
-
-    if usuario_db and check_password_hash(usuario_db["contrasena"], contrasena):
-        session["usuario"] = {
-            "id": usuario_db["id_usuario"],
-            "nombre": usuario_db["nombre"],
-            "rol": usuario_db["rol"],
+    
+    print("DATOS QUE LLEGAN DE LA BD:", usuario_db)
+    print("CONTRASEÑA INGRESADA:", contrasena)
+    
+    if usuario_db and usuario_db['contrasena'] == contrasena:
+        
+        session['usuario'] = {
+            'id': usuario_db['id_usuario'],
+            'nombre': usuario_db['nombre'],
+            'rol': usuario_db['rol']
         }
-
-        if usuario_db["rol"] == "Administrador":
-            return redirect("/medicamentos")
-        return redirect("/ventas")
-
-    return render_template("login.html", error="Credenciales incorrectas")
+        
+        if usuario_db['rol'] == 'Administrador':
+            return redirect('/dashboard')
+        else:
+            return redirect('/ventas')
+            
+    else:
+        return render_template('login.html', error="Credenciales incorrectas")
 
 
 @auth_ctrl.route("/logout")
