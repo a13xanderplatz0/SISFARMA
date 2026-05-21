@@ -182,3 +182,10 @@ INSERT INTO MEDICAMENTO (nombre, precio, descripcion, id_categoria) VALUES
 ('Ibuprofeno 400mg', 8.70, 'Antiinflamatorio y analgésico', 3),
 ('Vitamina C', 15.00, 'Suplemento vitamínico', 4),
 ('Jarabe para la tos', 18.50, 'Jarabe expectorante', 5);
+
+INSERT INTO LOTE (numero_lote, id_medicamento, fecha_vencimiento) VALUES
+('LOT001', 1, '2027-05-10'),
+('LOT002', 2, '2026-12-01'),
+('LOT003', 3, '2027-03-15'),
+('LOT004', 4, '2028-01-20'),
+('LOT005', 5, '2026-11-30');
