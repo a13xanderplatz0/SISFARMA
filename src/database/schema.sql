@@ -219,3 +219,7 @@ INSERT INTO HISTORIAL_VENTA (descripcion, id_cliente, id_venta) VALUES
 ('Compra de tratamiento completo para 3 meses. Solicita envío de comprobante al correo.', 3, 3),
 ('Cliente olvidó su tarjeta de puntos del establecimiento, solicita acumulación manual.', 4, 4),
 ('Pedido realizado vía telefónica y recogido en mostrador por un familiar.', 5, 5);
+
+UPDATE CLIENTE 
+SET telefono = '999111222', direccion = 'Av. Siempre Viva 742'
+WHERE id_cliente = 1;
