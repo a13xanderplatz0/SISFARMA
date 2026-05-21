@@ -204,16 +204,18 @@ INSERT INTO CLIENTE (nombre, telefono, direccion) VALUES
 ('Diego Mendoza', '955667788', 'Av. Ejército 1010'),
 ('Lucía Fernández', '966778899', 'Pasaje Las Flores 14');
 
+
 INSERT INTO VENTA (fecha, total, id_cliente, id_usuario) VALUES
-('2026-05-21', 35.00, 4, 2),
-('2026-05-21', 15.80, 5, 2),
-('2026-05-21', 120.00, 6, 2),
-('2026-05-21', 8.50, 7, 2),
-('2026-05-21', 45.20, 8, 2);
+('2026-05-21', 35.00, 1, 2),
+('2026-05-21', 15.80, 2, 2),
+('2026-05-21', 120.00, 3, 2),
+('2026-05-21', 8.50, 4, 2),
+('2026-05-21', 45.20, 5, 2);
+
 
 INSERT INTO HISTORIAL_VENTA (descripcion, id_cliente, id_venta) VALUES
-('Cliente presentó receta médica válida para la compra de antibióticos.', 4, 3),
-('Se aplicó un 10% de descuento automático por campaña de adulto mayor.', 5, 4),
-('Compra de tratamiento completo para 3 meses. Solicita envío de comprobante al correo.', 6, 5),
-('Cliente olvidó su tarjeta de puntos del establecimiento, solicita acumulación manual.', 7, 6),
-('Pedido realizado vía telefónica y recogido en mostrador por un familiar.', 8, 7);
+('Cliente presentó receta médica válida para la compra de antibióticos.', 1, 1),
+('Se aplicó un 10% de descuento automático por campaña de adulto mayor.', 2, 2),
+('Compra de tratamiento completo para 3 meses. Solicita envío de comprobante al correo.', 3, 3),
+('Cliente olvidó su tarjeta de puntos del establecimiento, solicita acumulación manual.', 4, 4),
+('Pedido realizado vía telefónica y recogido en mostrador por un familiar.', 5, 5);
