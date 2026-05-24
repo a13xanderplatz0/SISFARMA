@@ -232,3 +232,7 @@ WHERE numero_lote = 'LOT002' AND id_medicamento = 2;
 UPDATE COMPRA 
 SET estado = 'recibida' 
 WHERE id_compra = 2;
+
+UPDATE MEDICAMENTO 
+SET precio = 6.20, descripcion = 'Alivia dolor moderado, fiebre y malestar general'
+WHERE id_medicamento = 1;
