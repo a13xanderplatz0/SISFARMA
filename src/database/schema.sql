@@ -236,3 +236,11 @@ WHERE id_compra = 2;
 UPDATE MEDICAMENTO 
 SET precio = 6.20, descripcion = 'Alivia dolor moderado, fiebre y malestar general'
 WHERE id_medicamento = 1;
+
+UPDATE USUARIO 
+SET nombre = 'Ana Gómez Vargas' 
+WHERE id_usuario = 2;
+
+UPDATE PROVEEDOR 
+SET telefono = '+51 900111222' 
+WHERE id_proveedor = 1;
