@@ -155,7 +155,12 @@ INSERT INTO USUARIO (id_usuario, nombre, rol, contrasena, id_supervisor) VALUES
 (4, 'María Delgado', 'Farmacéutico', 'MariaD34', 1),
 (5, 'Jorge Ramírez', 'Farmacéutico', 'JorgeR31', 2);
 
-
+INSERT INTO PROVEEDOR (id_proveedor, nombre, telefono, direccion) VALUES
+(1, 'Laboratorios FarmaSalud S.A.', '+51 987654321', 'Av. De la Salud 123, Lima'),
+(2, 'Laboratorios Medicor', '+51 912345678', 'Calle Industrial 456, Arequipa'),
+(3, 'Distribuidora BioGénesis', '+51 934567890', 'Jr. Los Olivos 789, Trujillo'),
+(4, 'PharmaNorte Perú', '+51 945678123', 'Av. Central 990, Chiclayo'),
+(5, 'Suministros Médicos Globales', '+51 956789456', 'Calle Las Magnolias 105, Cusco');
 
 INSERT INTO CATEGORIA (nombre) VALUES
 ('Analgesicos'),
