@@ -162,6 +162,13 @@ INSERT INTO PROVEEDOR (id_proveedor, nombre, telefono, direccion) VALUES
 (4, 'PharmaNorte Perú', '+51 945678123', 'Av. Central 990, Chiclayo'),
 (5, 'Suministros Médicos Globales', '+51 956789456', 'Calle Las Magnolias 105, Cusco');
 
+INSERT INTO COMPRA (id_compra, fecha, estado, id_proveedor, id_usuario) VALUES
+(1, '2026-05-10', 'recibida', 1, 1),   -- Compra a FarmaSalud registrada por Alex
+(2, '2026-05-18', 'pendiente', 2, 2),  -- Compra a Medicor registrada por Ana
+(3, '2026-05-21', 'anulada', 3, 1),    -- Compra a BioGénesis registrada por Alex
+(4, '2026-05-22', 'recibida', 4, 2),   -- Compra a PharmaNorte registrada por Ana
+(5, '2026-05-23', 'pendiente', 5, 2);  -- Compra a Suministros Globales registrada por Ana
+
 INSERT INTO CATEGORIA (nombre) VALUES
 ('Analgesicos'),
 ('Antibioticos'),
