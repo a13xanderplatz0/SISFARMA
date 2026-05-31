@@ -1,25 +1,21 @@
 import os
-
 from flask import Flask, render_template, request, redirect
+from src.routes.medicamentos import medicamentos_bp
+from src.controllers.medicamentos_controller import MEDICAMENTOS_DB
+# importar otros blueprints...
 
 app = Flask(
     __name__,
     template_folder='src/views/templates',
     static_folder='src/views/static',
 )
+app.register_blueprint(medicamentos_bp)
+# registrar otros...
 
 
 @app.context_processor
 def inyectar_usuario():
     return {"current_user": {"nombre": "Carlos Mendoza", "rol": "Administrador"}}
-
-MEDICAMENTOS_DB = [
-    {"id_medicamento": 1, "nombre": "Paracetamol 500mg", "descripcion": "Alivia dolor y fiebre", "categoria_nombre": "Analgésicos", "precio": 5.50},
-    {"id_medicamento": 2, "nombre": "Amoxicilina 500mg", "descripcion": "Antibiótico de amplio espectro", "categoria_nombre": "Antibióticos", "precio": 12.90},
-    {"id_medicamento": 3, "nombre": "Ibuprofeno 400mg", "descripcion": "Antiinflamatorio y analgésico", "categoria_nombre": "Antiinflamatorios", "precio": 8.70},
-    {"id_medicamento": 4, "nombre": "Vitamina C", "descripcion": "Suplemento vitamínico", "categoria_nombre": "Vitaminas", "precio": 15.00},
-    {"id_medicamento": 5, "nombre": "Jarabe para la tos", "descripcion": "Jarabe expectorante", "categoria_nombre": "Jarabes", "precio": 18.50},
-]
 
 CLIENTES_DB = [
     {"id_cliente": 1, "nombre": "Ana López"},
@@ -40,32 +36,6 @@ PROVEEDORES_DB = [
 
 @app.route('/')
 def inicio():
-    return redirect('/medicamentos')
-
-
-@app.route('/medicamentos')
-def catalogo_medicamentos():
-    categorias_db = [
-        {"id_categoria": 1, "nombre": "Analgésicos"},
-        {"id_categoria": 2, "nombre": "Antibióticos"},
-    ]
-
-    return render_template(
-        'medicamentos.html',
-        medicamentos=MEDICAMENTOS_DB,
-        categorias=categorias_db,
-    )
-
-
-@app.route('/medicamentos/nuevo', methods=['POST'])
-def nuevo_medicamento():
-    nombre = request.form['nombre']
-    precio = request.form['precio']
-    id_categoria = request.form['id_categoria']
-    descripcion = request.form['descripcion']
-
-    print(f"Guardando: {nombre}, Precio: {precio}, Categoría: {id_categoria}, Descripción: {descripcion}")
-
     return redirect('/medicamentos')
 
 

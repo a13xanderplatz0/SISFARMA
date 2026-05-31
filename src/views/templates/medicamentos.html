@@ -27,9 +27,11 @@
             <td><span class="tag">{{ medicamento.categoria_nombre }}</span></td>
             <td>S/ {{ "%.2f"|format(medicamento.precio) }}</td>
             <td>
-                <button class="btn-edit">Editar</button>
-                <button class="btn-delete">Eliminar</button>
-            </td>
+            <a href="{{ url_for('medicamentos.editar', id_medicamento=medicamento.id_medicamento) }}" class="btn-edit">Editar</a>
+            <form action="/medicamentos/eliminar/{{ medicamento.id_medicamento }}" method="POST" style="display:inline; margin:0;">
+                <button type="submit" class="btn-delete">Eliminar</button>
+            </form>
+        </td>
         </tr>
         {% else %}
         <tr>
