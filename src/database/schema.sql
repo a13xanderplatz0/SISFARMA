@@ -148,26 +148,26 @@ CREATE TABLE REPORTE (
         FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO USUARIO (id_usuario, nombre, rol, contrasena, id_supervisor) VALUES
-(1, 'Juan Perez', 'Administrador', '1234', NULL),
-(2, 'Ana Gómez', 'Administrador', 'AnaG12', NULL),
-(3, 'Maria Torres', 'Farmacéutico', 'MariaT12', 1),
-(4, 'María Delgado', 'Farmacéutico', 'MariaD34', 1),
-(5, 'Jorge Ramírez', 'Farmacéutico', 'JorgeR31', 2);
+INSERT INTO USUARIO (nombre, rol, contrasena, id_supervisor) VALUES
+('Juan Perez', 'Administrador', '1234', NULL),
+('Ana Gómez', 'Administrador', 'AnaG12', NULL),
+('Maria Torres', 'Farmacéutico', 'MariaT12', 1),
+('María Delgado', 'Farmacéutico', 'MariaD34', 1),
+('Jorge Ramírez', 'Farmacéutico', 'JorgeR31', 2);
 
-INSERT INTO PROVEEDOR (id_proveedor, nombre, telefono, direccion) VALUES
-(1, 'Laboratorios FarmaSalud S.A.', '+51 987654321', 'Av. De la Salud 123, Lima'),
-(2, 'Laboratorios Medicor', '+51 912345678', 'Calle Industrial 456, Arequipa'),
-(3, 'Distribuidora BioGénesis', '+51 934567890', 'Jr. Los Olivos 789, Trujillo'),
-(4, 'PharmaNorte Perú', '+51 945678123', 'Av. Central 990, Chiclayo'),
-(5, 'Suministros Médicos Globales', '+51 956789456', 'Calle Las Magnolias 105, Cusco');
+INSERT INTO PROVEEDOR (nombre, telefono, direccion) VALUES
+('Laboratorios FarmaSalud S.A.', '+51 987654321', 'Av. De la Salud 123, Lima'),
+('Laboratorios Medicor', '+51 912345678', 'Calle Industrial 456, Arequipa'),
+('Distribuidora BioGénesis', '+51 934567890', 'Jr. Los Olivos 789, Trujillo'),
+('PharmaNorte Perú', '+51 945678123', 'Av. Central 990, Chiclayo'),
+('Suministros Médicos Globales', '+51 956789456', 'Calle Las Magnolias 105, Cusco');
 
-INSERT INTO COMPRA (id_compra, fecha, estado, id_proveedor, id_usuario) VALUES
-(1, '2026-05-10', 'recibida', 1, 1),   -- Compra a FarmaSalud registrada por Alex
-(2, '2026-05-18', 'pendiente', 2, 2),  -- Compra a Medicor registrada por Ana
-(3, '2026-05-21', 'anulada', 3, 1),    -- Compra a BioGénesis registrada por Alex
-(4, '2026-05-22', 'recibida', 4, 2),   -- Compra a PharmaNorte registrada por Ana
-(5, '2026-05-23', 'pendiente', 5, 2);  -- Compra a Suministros Globales registrada por Ana
+INSERT INTO COMPRA (fecha, estado, id_proveedor, id_usuario) VALUES
+('2026-05-10', 'recibida', 1, 1),   -- Compra a FarmaSalud registrada por Alex
+('2026-05-18', 'pendiente', 2, 2),  -- Compra a Medicor registrada por Ana
+('2026-05-21', 'anulada', 3, 1),    -- Compra a BioGénesis registrada por Alex
+('2026-05-22', 'recibida', 4, 2),   -- Compra a PharmaNorte registrada por Ana
+('2026-05-23', 'pendiente', 5, 2);  -- Compra a Suministros Globales registrada por Ana
 
 INSERT INTO CATEGORIA (nombre) VALUES
 ('Analgesicos'),
