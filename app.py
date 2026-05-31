@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect
 from src.routes.medicamentos import medicamentos_bp
-from src.controllers.medicamentos_controller import MEDICAMENTOS_DB
+from src.controllers.medicamentos_controller import listar
 # importar otros blueprints...
 
 app = Flask(
@@ -75,11 +75,12 @@ def ventas():
         {"id_venta": 5, "fecha": "2026-05-21", "cliente_nombre": "Lucía Fernández", "usuario_nombre": "Ana Gómez", "total": 45.20},
     ]
 
+    medicamentos, _ = listar()
     return render_template(
         'ventas.html',
         ventas=ventas_db,
         clientes=CLIENTES_DB,
-        medicamentos=MEDICAMENTOS_DB,
+        medicamentos=medicamentos,
     )
 
 
