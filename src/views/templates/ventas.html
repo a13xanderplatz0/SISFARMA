@@ -4,7 +4,7 @@
 
 {% block content %}
 <style>
-    /* Estilo Modulo de Ventas */
+    /* Estilos para Modulo de Ventas */
     :root {
         --pos-primary: #0056b3;
         --pos-success: #2e7d32;
@@ -50,7 +50,7 @@
         display: block;
     }
 
-    /* Split Screen POS */
+    /* POS */
     .pos-container {
         display: flex;
         gap: 20px;
@@ -58,7 +58,7 @@
         min-height: 500px;
     }
 
-    /* Panel Izquierdo: Catalogo */
+    /* Catalogo */
     .pos-catalog {
         flex: 3;
         display: flex;
@@ -134,7 +134,7 @@
         color: var(--pos-danger);
     }
 
-    /* Panel Derecho: Carrito */
+    /* Carrito */
     .pos-cart {
         flex: 2;
         display: flex;
@@ -321,22 +321,109 @@
         color: var(--pos-success);
         border-color: #c8e6c9;
     }
+
+    /* Pestaña Historial y Reportes */
+    .report-box {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid var(--pos-border);
+        box-shadow: var(--pos-card-shadow);
+    }
+    .report-form {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+        max-width: 600px;
+    }
+    .report-form .form-group {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    /* Boleta Layout (Modal Detalle) */
+    .receipt-container {
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        color: #333;
+        background: #fbfbfb;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+    .receipt-header {
+        text-align: center;
+        border-bottom: 1px dashed #777;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    .receipt-header h4 {
+        margin: 0 0 5px 0;
+        font-size: 1.2rem;
+    }
+    .receipt-details {
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+        border-bottom: 1px dashed #777;
+        padding-bottom: 10px;
+    }
+    .receipt-details div {
+        margin-bottom: 3px;
+    }
+    .receipt-table {
+        width: 100%;
+        font-size: 0.85rem;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    .receipt-table th {
+        text-align: left;
+        border-bottom: 1px solid #333;
+        padding-bottom: 4px;
+    }
+    .receipt-table td {
+        padding: 5px 0;
+    }
+    .receipt-totals {
+        border-top: 1px dashed #777;
+        padding-top: 10px;
+        text-align: right;
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+    .receipt-audit {
+        font-size: 0.8rem;
+        font-style: italic;
+        background: #eef2f7;
+        padding: 8px;
+        border-radius: 4px;
+        font-family: sans-serif;
+    }
 </style>
 
 <div class="header-actions">
     <h2>Registro y Control de Ventas</h2>
 </div>
 
+<!-- Tab Navigation -->
 <div class="tab-bar">
-    <button class="tab-btn active">Punto de Venta (POS)</button>
+    <button class="tab-btn active" onclick="switchTab(event, 'tab-pos')">Punto de Venta (POS)</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-historial')">Historial de Ventas y Reportes</button>
 </div>
 
+<!-- TABS CONTENT -->
+
+<!-- Pestaña 1: Nueva Venta (POS) -->
 <div id="tab-pos" class="tab-content active">
     <div class="pos-container">
         
+        <!-- Panel Izquierdo: Catalogo -->
         <div class="pos-catalog">
             <div class="search-box">
-                <input type="text" id="catalog-search" placeholder="Buscar medicamento por nombre o categoria...">
+                <input type="text" id="catalog-search" placeholder="Buscar medicamento por nombre o categoria..." onkeyup="filterCatalog()">
             </div>
             
             <div class="catalog-list-wrapper">
@@ -372,7 +459,7 @@
                             </td>
                             <td>
                                 {% if med.stock_total > 0 %}
-                                    <button class="btn-primary" style="padding: 5px 10px; font-size: 0.85rem;">Agregar</button>
+                                    <button class="btn-primary" style="padding: 5px 10px; font-size: 0.85rem;" onclick="addToCart({{ med.id_medicamento }})">Agregar</button>
                                 {% else %}
                                     <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.85rem; cursor: not-allowed;" disabled>Sin Stock</button>
                                 {% endif %}
@@ -384,6 +471,7 @@
             </div>
         </div>
         
+        <!-- Panel Derecho: Carrito -->
         <div class="pos-cart">
             <div id="cart-alert" class="alert-container"></div>
             
@@ -396,13 +484,14 @@
                             <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
                         {% endfor %}
                     </select>
-                    <button class="btn-secondary" type="button">Nuevo Cliente</button>
+                    <button class="btn-secondary" type="button" onclick="abrirModal('modalNuevoCliente')">Nuevo Cliente</button>
                 </div>
             </div>
             
             <h4 style="margin-bottom: 10px; font-weight: 600;">Detalles de la Venta</h4>
             
             <div class="cart-items-wrapper" id="cart-items-container">
+                <!-- Se pobla dinamicamente mediante Javascript -->
                 <div style="text-align: center; color: #888; padding: 40px 10px;" id="empty-cart-msg">
                     No hay productos agregados al carrito.
                 </div>
@@ -426,18 +515,19 @@
             <div>
                 <label style="font-weight: 600; margin-bottom: 5px;">Metodo de Pago</label>
                 <div class="payment-chip-group">
-                    <div class="payment-chip active" id="chip-efectivo">Efectivo</div>
-                    <div class="payment-chip" id="chip-tarjeta">Tarjeta</div>
-                    <div class="payment-chip" id="chip-yape">Yape / Plin</div>
+                    <div class="payment-chip active" id="chip-efectivo" onclick="setPaymentMethod('Efectivo')">Efectivo</div>
+                    <div class="payment-chip" id="chip-tarjeta" onclick="setPaymentMethod('Tarjeta')">Tarjeta</div>
+                    <div class="payment-chip" id="chip-yape" onclick="setPaymentMethod('Yape')">Yape / Plin</div>
                 </div>
                 <input type="hidden" id="cart-metodo-pago" value="Efectivo">
             </div>
             
+            <!-- Calculadora de vuelto para Efectivo -->
             <div class="cash-change-panel" id="cash-panel" style="display: block;">
                 <div class="form-row" style="margin-bottom: 0;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 0.8rem; margin-bottom: 2px;">Monto Recibido (S/)</label>
-                        <input type="number" id="cash-received" step="0.1" min="0" placeholder="0.00">
+                        <input type="number" id="cash-received" step="0.1" min="0" placeholder="0.00" oninput="calculateChange()">
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 0.8rem; margin-bottom: 2px;">Cambio / Vuelto (S/)</label>
@@ -447,11 +537,546 @@
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: auto;">
-                <button class="btn-secondary" style="flex: 1;">Limpiar Carrito</button>
-                <button class="btn-primary" style="flex: 2; background: var(--pos-success);" id="btn-submit-venta">Confirmar Venta</button>
+                <button class="btn-secondary" style="flex: 1;" onclick="clearCart()">Limpiar Carrito</button>
+                <button class="btn-primary" style="flex: 2; background: var(--pos-success);" id="btn-submit-venta" onclick="submitVenta()">Confirmar Venta</button>
             </div>
             
         </div>
     </div>
 </div>
+
+<!-- Pestaña 2: Historial y Reportes -->
+<div id="tab-historial" class="tab-content">
+    
+    <!-- SUBSECCION 1: EXPORTACION DE REPORTES CON AGREGACIONES COMPLEJAS (GROUP BY, HAVING) -->
+    <div class="report-box">
+        <h3 style="margin-bottom: 10px; font-weight: 600; color: #111;">Exportar Reporte de Rendimiento de Medicamentos</h3>
+        <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px; max-width: 800px;">
+            Este reporte genera una lista consolidada agrupando las ventas por medicamento y categoria. Filtra mediante la clausula HAVING aquellos medicamentos que hayan acumulado ingresos de venta totales superiores o iguales al umbral ingresado. El archivo resultante se descargara directamente como CSV compatible con Excel.
+        </p>
+        <form action="/ventas/reporte/exportar" method="GET" class="report-form" target="_blank">
+            <div class="form-group">
+                <label>Ingreso Minimo Requerido (S/)</label>
+                <input type="number" name="min_ingreso" step="5" min="0" value="15.00" required>
+            </div>
+            <button class="btn-primary" type="submit" style="background: var(--pos-primary);">Generar y Descargar CSV</button>
+        </form>
+    </div>
+    
+    <!-- SUBSECCION 2: HISTORIAL DE VENTAS -->
+    <div class="report-box" style="margin-top: 20px;">
+        <h3 style="margin-bottom: 15px; font-weight: 600; color: #111;">Historial de Ventas Registradas</h3>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Boleta</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Atendido por</th>
+                    <th>Metodo Pago</th>
+                    <th>Total Facturado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td>VN-{{ "%04d"|format(venta.id_venta) }}</td>
+                    <td>{{ venta.fecha }}</td>
+                    <td><strong>{{ venta.cliente_nombre }}</strong></td>
+                    <td>{{ venta.usuario_nombre }}</td>
+                    <td><span class="tag">{{ venta.metodo_pago }}</span></td>
+                    <td><strong>S/ {{ "%.2f"|format(venta.total) }}</strong></td>
+                    <td>
+                        <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.85rem;" onclick="verDetalleBoleta({{ venta.id_venta }})">Ver Detalle</button>
+                        {% if current_user.rol == 'Administrador' %}
+                        <form action="/ventas/{{ venta.id_venta }}/anular" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Esta seguro de anular esta venta? El stock se devolvera al inventario.')">
+                            <button type="submit" class="btn-delete" style="padding: 5px 10px; font-size: 0.85rem;">Anular</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state" style="text-align: center; padding: 30px; color: #888;">No hay ventas registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL 1: REGISTRAR NUEVO CLIENTE (AJAX) -->
+<div id="modalNuevoCliente" class="modal-overlay">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Registrar Cliente Nuevo</h3>
+            <span class="close-btn" onclick="cerrarModal('modalNuevoCliente')">&times;</span>
+        </div>
+        <div id="modal-client-alert" class="alert-container"></div>
+        <form id="form-cliente-rapido" onsubmit="saveClienteRapido(event)">
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="client-name" required placeholder="Nombre y Apellidos">
+            </div>
+            <div class="form-group">
+                <label>Telefono</label>
+                <input type="text" id="client-phone" placeholder="Ej. 999111222">
+            </div>
+            <div class="form-group">
+                <label>Direccion</label>
+                <input type="text" id="client-address" placeholder="Direccion domiciliaria">
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevoCliente')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 2: DETALLE DE BOLETA DE VENTA -->
+<div id="modalDetalleBoleta" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>Comprobante de Venta</h3>
+            <span class="close-btn" onclick="cerrarModal('modalDetalleBoleta')">&times;</span>
+        </div>
+        
+        <div class="receipt-container" id="receipt-content">
+            <!-- Cargado mediante AJAX -->
+            Cargando informacion del comprobante...
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-primary" onclick="cerrarModal('modalDetalleBoleta')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT POS SYSTEM -->
+<script>
+    // Variables de Estado
+    let cart = [];
+    const medicinesCatalog = {};
+    
+    // Rellenar Catalogo local desde el DOM renderizado por Jinja2
+    document.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll(".catalog-row");
+        rows.forEach(row => {
+            const id = parseInt(row.getAttribute("data-id"));
+            medicinesCatalog[id] = {
+                id_medicamento: id,
+                nombre: row.getAttribute("data-nombre"),
+                precio: parseFloat(row.getAttribute("data-precio")),
+                stock: parseInt(row.getAttribute("data-stock")),
+                categoria: row.getAttribute("data-categoria")
+            };
+        });
+    });
+
+    // Pestañas
+    function switchTab(evt, tabId) {
+        const tabcontents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontents.length; i++) {
+            tabcontents[i].classList.remove("active");
+        }
+        const tablinks = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Buscador en Tiempo Real
+    function filterCatalog() {
+        const query = document.getElementById("catalog-search").value.toLowerCase().trim();
+        const rows = document.querySelectorAll(".catalog-row");
+        
+        rows.forEach(row => {
+            const nombre = row.getAttribute("data-nombre").toLowerCase();
+            const categoria = row.getAttribute("data-categoria").toLowerCase();
+            if (nombre.includes(query) || categoria.includes(query)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // Carrito de compras: Agregar
+    function addToCart(id) {
+        const med = medicinesCatalog[id];
+        if (!med || med.stock <= 0) return;
+        
+        const existingItem = cart.find(item => item.id_medicamento === id);
+        if (existingItem) {
+            if (existingItem.cantidad < med.stock) {
+                existingItem.cantidad++;
+            } else {
+                showCartAlert("Cantidad limitada por el stock disponible", "error");
+            }
+        } else {
+            cart.push({
+                id_medicamento: id,
+                nombre: med.nombre,
+                precio: med.precio,
+                cantidad: 1,
+                stock: med.stock
+            });
+        }
+        renderCart();
+    }
+
+    // Carrito de compras: Quitar/Restar
+    function updateQty(id, delta) {
+        const item = cart.find(i => i.id_medicamento === id);
+        if (!item) return;
+        
+        const newQty = item.cantidad + delta;
+        if (newQty <= 0) {
+            removeFromCart(id);
+        } else if (newQty <= item.stock) {
+            item.cantidad = newQty;
+            renderCart();
+        } else {
+            showCartAlert("Cantidad limitada por el stock disponible en inventario", "error");
+        }
+    }
+
+    function changeQtyDirectly(id, val) {
+        const item = cart.find(i => i.id_medicamento === id);
+        if (!item) return;
+        
+        let newQty = parseInt(val) || 1;
+        if (newQty < 1) newQty = 1;
+        
+        if (newQty <= item.stock) {
+            item.cantidad = newQty;
+        } else {
+            item.cantidad = item.stock;
+            showCartAlert("Ajustado al limite maximo de stock en inventario", "error");
+        }
+        renderCart();
+    }
+
+    // Carrito de compras: Remover fila
+    function removeFromCart(id) {
+        cart = cart.filter(item => item.id_medicamento !== id);
+        renderCart();
+    }
+
+    // Vaciar Carrito
+    function clearCart() {
+        if (cart.length === 0) return;
+        if (confirm("¿Seguro que desea vaciar el carrito?")) {
+            cart = [];
+            renderCart();
+        }
+    }
+
+    // Dibujar Carrito y Totales
+    function renderCart() {
+        const container = document.getElementById("cart-items-container");
+        container.innerHTML = "";
+        
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; color: #888; padding: 40px 10px;" id="empty-cart-msg">
+                    No hay productos agregados al carrito.
+                </div>
+            `;
+            document.getElementById("summary-subtotal").innerText = "S/ 0.00";
+            document.getElementById("summary-igv").innerText = "S/ 0.00";
+            document.getElementById("summary-total").innerText = "S/ 0.00";
+            calculateChange();
+            return;
+        }
+        
+        let subtotalTotal = 0.0;
+        
+        cart.forEach(item => {
+            const subtotal = item.precio * item.cantidad;
+            subtotalTotal += subtotal;
+            
+            const div = document.createElement("div");
+            div.className = "cart-item";
+            div.innerHTML = `
+                <div class="cart-item-info">
+                    <div class="cart-item-title">${item.nombre}</div>
+                    <div class="cart-item-price">S/ ${item.precio.toFixed(2)} c/u</div>
+                </div>
+                <div class="cart-item-actions">
+                    <button class="qty-btn" onclick="updateQty(${item.id_medicamento}, -1)">-</button>
+                    <input type="text" class="qty-input" value="${item.cantidad}" onchange="changeQtyDirectly(${item.id_medicamento}, this.value)">
+                    <button class="qty-btn" onclick="updateQty(${item.id_medicamento}, 1)">+</button>
+                </div>
+                <div class="cart-item-subtotal">S/ ${subtotal.toFixed(2)}</div>
+                <button class="cart-item-delete" onclick="removeFromCart(${item.id_medicamento})">×</button>
+            `;
+            container.appendChild(div);
+        });
+        
+        // El total ya incluye IGV, asi que calculamos base imponible y el igv
+        const igv = subtotalTotal * 0.18;
+        const total = subtotalTotal + igv;
+        
+        document.getElementById("summary-subtotal").innerText = `S/ ${subtotalTotal.toFixed(2)}`;
+        document.getElementById("summary-igv").innerText = `S/ ${igv.toFixed(2)}`;
+        document.getElementById("summary-total").innerText = `S/ ${total.toFixed(2)}`;
+        
+        calculateChange();
+    }
+
+    // Configurar Metodo de Pago
+    function setPaymentMethod(method) {
+        document.getElementById("cart-metodo-pago").value = method;
+        
+        // Activar chip visual
+        document.querySelectorAll(".payment-chip").forEach(chip => chip.classList.remove("active"));
+        if (method === "Efectivo") {
+            document.getElementById("chip-efectivo").classList.add("active");
+            document.getElementById("cash-panel").style.display = "block";
+        } else if (method === "Tarjeta") {
+            document.getElementById("chip-tarjeta").classList.add("active");
+            document.getElementById("cash-panel").style.display = "none";
+        } else {
+            document.getElementById("chip-yape").classList.add("active");
+            document.getElementById("cash-panel").style.display = "none";
+        }
+        calculateChange();
+    }
+
+    // Calcular Vuelto/Cambio
+    function calculateChange() {
+        const totalStr = document.getElementById("summary-total").innerText.replace("S/ ", "");
+        const total = parseFloat(totalStr) || 0.0;
+        const method = document.getElementById("cart-metodo-pago").value;
+        
+        if (method !== "Efectivo") {
+            return;
+        }
+        
+        const cashRec = parseFloat(document.getElementById("cash-received").value) || 0.0;
+        const changeInput = document.getElementById("cash-change");
+        
+        if (cashRec >= total) {
+            const change = cashRec - total;
+            changeInput.value = `S/ ${change.toFixed(2)}`;
+            changeInput.style.color = "var(--pos-success)";
+        } else {
+            changeInput.value = "Monto insuficiente";
+            changeInput.style.color = "var(--pos-danger)";
+        }
+    }
+
+    // Mostrar Alertas del Carrito
+    function showCartAlert(msg, type) {
+        const el = document.getElementById("cart-alert");
+        el.className = `alert-container ${type}`;
+        el.innerText = msg;
+        el.style.display = "block";
+        
+        setTimeout(() => {
+            el.style.display = "none";
+        }, 4000);
+    }
+
+    // Enviar formulario de venta al servidor (CRUD Complejo)
+    function submitVenta() {
+        const idCliente = document.getElementById("cart-cliente").value;
+        const metodoPago = document.getElementById("cart-metodo-pago").value;
+        
+        if (!idCliente) {
+            showCartAlert("Debe seleccionar un cliente antes de continuar", "error");
+            return;
+        }
+        if (cart.length === 0) {
+            showCartAlert("El carrito de compras esta vacio", "error");
+            return;
+        }
+        
+        const payload = {
+            id_cliente: parseInt(idCliente),
+            metodo_pago: metodoPago,
+            productos: cart.map(item => ({
+                id_medicamento: item.id_medicamento,
+                cantidad: item.cantidad
+            }))
+        };
+        
+        const submitBtn = document.getElementById("btn-submit-venta");
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Registrando...";
+        
+        fetch("/ventas/nueva", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showCartAlert("Venta confirmada exitosamente. Recargando la vista...", "success");
+                cart = [];
+                renderCart();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showCartAlert(data.message || "Error al procesar la venta", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Confirmar Venta";
+            }
+        })
+        .catch(err => {
+            showCartAlert("Error de conexion con el servidor", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Confirmar Venta";
+        });
+    }
+
+    // Guardar Cliente Rapido (AJAX)
+    function saveClienteRapido(event) {
+        event.preventDefault();
+        
+        const nombre = document.getElementById("client-name").value.trim();
+        const telefono = document.getElementById("client-phone").value.trim();
+        const direccion = document.getElementById("client-address").value.trim();
+        
+        const alertEl = document.getElementById("modal-client-alert");
+        alertEl.style.display = "none";
+        
+        if (!nombre) {
+            alertEl.className = "alert-container error";
+            alertEl.innerText = "El nombre del cliente es obligatorio";
+            alertEl.style.display = "block";
+            return;
+        }
+        
+        fetch("/ventas/clientes/rapido", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, telefono, direccion })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Registrar cliente en el selector y seleccionarlo
+                const select = document.getElementById("cart-cliente");
+                const opt = document.createElement("option");
+                opt.value = data.id_cliente;
+                opt.innerText = data.nombre;
+                opt.selected = true;
+                select.appendChild(opt);
+                
+                // Limpiar campos y cerrar modal
+                document.getElementById("form-cliente-rapido").reset();
+                cerrarModal("modalNuevoCliente");
+            } else {
+                alertEl.className = "alert-container error";
+                alertEl.innerText = data.message || "Error al guardar el cliente";
+                alertEl.style.display = "block";
+            }
+        })
+        .catch(err => {
+            alertEl.className = "alert-container error";
+            alertEl.innerText = "Fallo la comunicacion con el servidor";
+            alertEl.style.display = "block";
+        });
+    }
+
+    // Mostrar detalle del recibo de venta
+    function verDetalleBoleta(idVenta) {
+        abrirModal("modalDetalleBoleta");
+        const container = document.getElementById("receipt-content");
+        container.innerHTML = "Cargando informacion del comprobante...";
+        
+        fetch(`/ventas/${idVenta}/detalle`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                const cab = res.data.cabecera;
+                const dets = res.data.detalles;
+                
+                let rowsHtml = "";
+                dets.forEach(det => {
+                    rowsHtml += `
+                        <tr>
+                            <td>${det.medicamento_nombre} x ${det.cantidad}</td>
+                            <td style="text-align: right;">S/ ${parseFloat(det.precio_unitario).toFixed(2)}</td>
+                            <td style="text-align: right;">S/ ${parseFloat(det.subtotal).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Formatear boleta
+                const html = `
+                    <div class="receipt-header">
+                        <h4>FARMACIA SISFARMA</h4>
+                        <p style="margin: 0; font-size: 0.8rem;">Control de Medicamentos y Caja</p>
+                        <p style="margin: 3px 0 0 0; font-weight: bold;">BOLETA N° VN-${String(cab.id_venta).padStart(4, '0')}</p>
+                    </div>
+                    
+                    <div class="receipt-details">
+                        <div><strong>Fecha:</strong> ${cab.fecha}</div>
+                        <div><strong>Cliente:</strong> ${cab.cliente_nombre}</div>
+                        ${cab.cliente_telefono ? `<div><strong>Telf:</strong> ${cab.cliente_telefono}</div>` : ''}
+                        ${cab.cliente_direccion ? `<div><strong>Dir:</strong> ${cab.cliente_direccion}</div>` : ''}
+                        <div><strong>Cajero:</strong> ${cab.usuario_nombre}</div>
+                        <div><strong>Metodo Pago:</strong> ${cab.metodo_pago}</div>
+                    </div>
+                    
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="text-align: right;">Precio</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div class="receipt-totals">
+                        TOTAL COBRADO: S/ ${parseFloat(cab.total).toFixed(2)}
+                    </div>
+                    
+                    <div class="receipt-audit">
+                        <strong>Auditoria (Historial de Venta):</strong><br>
+                        ${cab.historial_descripcion || 'Sin observaciones registradas.'}
+                    </div>
+                `;
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = "No se pudo recuperar la informacion de esta boleta.";
+            }
+        })
+        .catch(err => {
+            container.innerHTML = "Error al intentar comunicarse con el servidor.";
+        });
+    }
+
+    // Gestion de Modales
+    function abrirModal(idModal) { 
+        document.getElementById(idModal).style.display = 'flex'; 
+        // Limpiar alertas de modal
+        const alertEl = document.getElementById("modal-client-alert");
+        if (alertEl) alertEl.style.display = "none";
+    }
+    function cerrarModal(idModal) { 
+        document.getElementById(idModal).style.display = 'none'; 
+    }
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) modals[i].style.display = "none";
+        }
+    }
+</script>
 {% endblock %}
