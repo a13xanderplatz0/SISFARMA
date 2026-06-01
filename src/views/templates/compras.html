@@ -58,6 +58,7 @@
             <h3>Generar Orden de Compra</h3>
             <span class="close-btn" onclick="cerrarModal('modalNuevaCompra')">&times;</span>
         </div>
+        
         <form action="/compras/nueva" method="POST">
             <div class="form-group">
                 <label>Proveedor / Laboratorio</label>
@@ -80,6 +81,40 @@
                 <div class="form-group">
                     <label>Fecha de Pedido</label>
                     <input type="date" name="fecha" required>
+                </div>
+            </div>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <div class="form-group">
+                <label>Medicamento a Comprar</label>
+                <select name="id_medicamento" required>
+                    <option value="">Seleccione el medicamento...</option>
+                    {% for med in medicamentos %}
+                        <option value="{{ med.id_medicamento }}">{{ med.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cantidad (Cajas/Unidades)</label>
+                    <input type="number" name="cantidad" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio de Compra Total</label>
+                    <input type="number" step="0.01" name="precio_compra" placeholder="Ej. 150.50" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Número de Lote</label>
+                    <input type="text" name="numero_lote" placeholder="Ej. LOTE-2024" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Vencimiento</label>
+                    <input type="date" name="fecha_vencimiento" required>
                 </div>
             </div>
             
