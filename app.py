@@ -8,9 +8,8 @@ from src.routes.compras import compras_bp
 from src.routes.usuarios import usuarios_bp
 
 from src.controllers.medicamentos_controller import listar
-from src.controllers.compras_controller import listar_inventario_real
+from src.controllers.compras_controller import listar_inventario_real, actualizar_stock_inventario
 from src.controllers.reportes_controller import reportes_bp
-
 
 # importar otros blueprints...
 
@@ -72,9 +71,6 @@ def inventario_ingreso():
     print(f"Ingreso inventario #{id_inventario}: +{cantidad} ({motivo})")
 
     return redirect('/inventario')
-
-
-
 
 
 if __name__ == '__main__':

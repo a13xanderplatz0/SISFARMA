@@ -86,3 +86,14 @@ def listar_inventario_real():
         ORDER BY i.id_inventario DESC
     """
     return execute_query(query, fetch_all=True)
+
+
+def actualizar_stock_inventario(id_inventario, cantidad, motivo=None):
+    """Actualiza el stock de un registro de inventario existente."""
+    update_query = """
+        UPDATE INVENTARIO
+        SET stock = stock + %s
+        WHERE id_inventario = %s
+    """
+    execute_query(update_query, (cantidad, id_inventario))
+    return True
