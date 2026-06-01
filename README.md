@@ -78,3 +78,21 @@ Sigue la misma lógica maestro-detalle de las ventas, pero mirando hacia los pro
 
 > **Políticas de Integridad (Borrado en Cascada):**
 > El diseño de la base de datos protege la información crítica. Si se elimina una `VENTA` o una `COMPRA`, sus respectivos detalles (`DETALLE_VENTA`, `DETALLE_COMPRA`), pagos e historiales se borrarán automáticamente en cascada (`ON DELETE CASCADE`). Sin embargo, no se puede eliminar un medicamento del catálogo si este tiene lotes vigentes o stock en inventario (`ON DELETE RESTRICT`).
+
+## 🛠️ Configuración del entorno local
+
+1. Copia `.env.example` a `.env`.
+2. Actualiza las credenciales MySQL con el usuario y la contraseña válidos para tu servidor local.
+   - Si `root` no puede autenticarse, crea un usuario MySQL dedicado y usa esas credenciales.
+3. Si tu servidor MySQL usa un plugin de autenticación distinto, ajusta `MYSQL_AUTH_PLUGIN`.
+4. Ejecuta el script de inicialización de la base de datos:
+
+```bash
+python -m src.database.setup
+```
+
+5. Inicia la aplicación Flask:
+
+```bash
+python app.py
+```
