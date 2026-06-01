@@ -9,9 +9,12 @@ def listar():
             m.precio,
             m.descripcion,
             m.id_categoria,
-            c.nombre AS categoria_nombre
+            c.nombre AS categoria_nombre,
+            COALESCE(SUM(i.stock), 0) AS stock_total
         FROM MEDICAMENTO m
         JOIN CATEGORIA c ON m.id_categoria = c.id_categoria
+        LEFT JOIN INVENTARIO i ON m.id_medicamento = i.id_medicamento
+        GROUP BY m.id_medicamento, m.nombre, m.precio, m.descripcion, m.id_categoria, c.nombre
         ORDER BY m.id_medicamento
     """
     categorias_query = "SELECT id_categoria, nombre FROM CATEGORIA ORDER BY nombre"
