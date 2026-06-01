@@ -3,100 +3,455 @@
 {% block title %}Ventas | SISFARMA{% endblock %}
 
 {% block content %}
+<style>
+    /* Estilo Modulo de Ventas */
+    :root {
+        --pos-primary: #0056b3;
+        --pos-success: #2e7d32;
+        --pos-success-bg: #e8f5e9;
+        --pos-warning: #e65100;
+        --pos-warning-bg: #fff3e0;
+        --pos-danger: #c62828;
+        --pos-danger-bg: #ffebee;
+        --pos-border: #e0e0e0;
+        --pos-card-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        --pos-modal-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    /* Tab Bar */
+    .tab-bar {
+        display: flex;
+        border-bottom: 2px solid var(--pos-border);
+        margin-bottom: 20px;
+    }
+    .tab-btn {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-size: 1rem;
+        color: #666;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .tab-btn:hover {
+        color: var(--pos-primary);
+        background: rgba(0, 86, 179, 0.04);
+    }
+    .tab-btn.active {
+        color: var(--pos-primary);
+        border-bottom-color: var(--pos-primary);
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Split Screen POS */
+    .pos-container {
+        display: flex;
+        gap: 20px;
+        height: calc(100vh - 200px);
+        min-height: 500px;
+    }
+
+    /* Panel Izquierdo: Catalogo */
+    .pos-catalog {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: var(--pos-card-shadow);
+        border: 1px solid var(--pos-border);
+    }
+    .search-box {
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--pos-border);
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background: #fdfdfd;
+        transition: border 0.2s;
+    }
+    .search-box input:focus {
+        border-color: var(--pos-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+    }
+    .catalog-list-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        border: 1px solid #f0f0f0;
+        border-radius: 6px;
+    }
+    .catalog-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .catalog-table th, .catalog-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .catalog-table th {
+        background: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        font-weight: 600;
+    }
+    .catalog-table tr:hover {
+        background: #fafafa;
+    }
+
+    /* Stock Status */
+    .badge-stock {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .badge-stock.high {
+        background-color: var(--pos-success-bg);
+        color: var(--pos-success);
+    }
+    .badge-stock.low {
+        background-color: var(--pos-warning-bg);
+        color: var(--pos-warning);
+    }
+    .badge-stock.out {
+        background-color: var(--pos-danger-bg);
+        color: var(--pos-danger);
+    }
+
+    /* Panel Derecho: Carrito */
+    .pos-cart {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: var(--pos-card-shadow);
+        border: 1px solid var(--pos-border);
+    }
+    .cart-client-section {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 15px;
+    }
+    .client-select-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+    .client-select-wrapper select {
+        flex: 1;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--pos-border);
+    }
+    .cart-items-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        border: 1px solid #f5f5f5;
+        border-radius: 6px;
+        padding: 5px;
+        background: #fafafa;
+    }
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        border: 1px solid #eee;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .cart-item-info {
+        flex: 2;
+    }
+    .cart-item-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .cart-item-price {
+        font-size: 0.8rem;
+        color: #777;
+    }
+    .cart-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .qty-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background: #f8f9fa;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .qty-btn:hover {
+        background: #e9ecef;
+    }
+    .qty-input {
+        width: 35px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 3px 0;
+        font-size: 0.85rem;
+    }
+    .cart-item-subtotal {
+        width: 70px;
+        text-align: right;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .cart-item-delete {
+        background: none;
+        border: none;
+        color: var(--pos-danger);
+        cursor: pointer;
+        padding: 5px;
+        font-size: 1.1rem;
+    }
+    .cart-item-delete:hover {
+        color: #a51d1d;
+    }
+
+    /* Summary */
+    .billing-summary {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #eef0f2;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+    .summary-row.total {
+        border-top: 1px solid #ddd;
+        padding-top: 8px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: #111;
+    }
+
+    /* Payment Methods */
+    .payment-chip-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    .payment-chip {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border: 2px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: bold;
+        transition: all 0.2s;
+        background: white;
+    }
+    .payment-chip:hover {
+        border-color: var(--pos-primary);
+        background-color: #f7faff;
+    }
+    .payment-chip.active {
+        border-color: var(--pos-primary);
+        background-color: #e6f0fa;
+        color: var(--pos-primary);
+    }
+    .cash-change-panel {
+        display: none;
+        background: #eef7ee;
+        border: 1px solid #c8e6c9;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 15px;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Feedbacks & Messages */
+    .alert-container {
+        display: none;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+    }
+    .alert-container.error {
+        background-color: var(--pos-danger-bg);
+        color: var(--pos-danger);
+        border-color: #ffcdd2;
+    }
+    .alert-container.success {
+        background-color: var(--pos-success-bg);
+        color: var(--pos-success);
+        border-color: #c8e6c9;
+    }
+</style>
+
 <div class="header-actions">
-    <h2>Registro de Ventas</h2>
-    <button class="btn-primary" onclick="abrirModal('modalNuevaVenta')">+ Nueva Venta</button>
+    <h2>Registro y Control de Ventas</h2>
 </div>
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>N° Boleta/Venta</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Atendido por</th>
-            <th>Total (S/)</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for venta in ventas %}
-        <tr>
-            <td>#VN-{{ "%04d"|format(venta.id_venta) }}</td>
-            <td>{{ venta.fecha }}</td>
-            <td><strong>{{ venta.cliente_nombre }}</strong></td>
-            <td>{{ venta.usuario_nombre }}</td>
-            <td><strong>S/ {{ "%.2f"|format(venta.total) }}</strong></td>
-            <td>
-                <button class="btn-secondary">Ver Detalle</button>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="6" class="empty-state">No hay ventas registradas el día de hoy.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="tab-bar">
+    <button class="tab-btn active">Punto de Venta (POS)</button>
+</div>
 
-<div id="modalNuevaVenta" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Registrar Venta</h3>
-            <span class="close-btn" onclick="cerrarModal('modalNuevaVenta')">&times;</span>
+<div id="tab-pos" class="tab-content active">
+    <div class="pos-container">
+        
+        <div class="pos-catalog">
+            <div class="search-box">
+                <input type="text" id="catalog-search" placeholder="Buscar medicamento por nombre o categoria...">
+            </div>
+            
+            <div class="catalog-list-wrapper">
+                <table class="catalog-table" id="catalog-table">
+                    <thead>
+                        <tr>
+                            <th>Medicamento</th>
+                            <th>Categoria</th>
+                            <th>Precio Unitario</th>
+                            <th>Stock</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for med in medicamentos %}
+                        <tr class="catalog-row" 
+                            data-id="{{ med.id_medicamento }}"
+                            data-nombre="{{ med.nombre }}"
+                            data-precio="{{ med.precio }}"
+                            data-stock="{{ med.stock_total }}"
+                            data-categoria="{{ med.categoria_nombre | lower }}">
+                            <td><strong>{{ med.nombre }}</strong><br><small style="color: #666;">{{ med.descripcion or '' }}</small></td>
+                            <td><span class="tag">{{ med.categoria_nombre }}</span></td>
+                            <td>S/ {{ "%.2f"|format(med.precio) }}</td>
+                            <td>
+                                {% if med.stock_total > 20 %}
+                                    <span class="badge-stock high">{{ med.stock_total }} disponibles</span>
+                                {% elif med.stock_total > 0 %}
+                                    <span class="badge-stock low">{{ med.stock_total }} poco stock</span>
+                                {% else %}
+                                    <span class="badge-stock out">Agotado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if med.stock_total > 0 %}
+                                    <button class="btn-primary" style="padding: 5px 10px; font-size: 0.85rem;">Agregar</button>
+                                {% else %}
+                                    <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.85rem; cursor: not-allowed;" disabled>Sin Stock</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <form action="/ventas/nueva" method="POST">
-            <div class="form-group">
+        
+        <div class="pos-cart">
+            <div id="cart-alert" class="alert-container"></div>
+            
+            <div class="cart-client-section">
                 <label>Cliente</label>
-                <select name="id_cliente" required>
-                    <option value="">Seleccione un cliente...</option>
-                    {% for cliente in clientes %}
-                        <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Medicamento a vender</label>
-                <select name="id_medicamento" required>
-                    <option value="">Seleccione el producto...</option>
-                    {% for med in medicamentos %}
-                        <option value="{{ med.id_medicamento }}">{{ med.nombre }} - S/ {{ med.precio }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Cantidad</label>
-                    <input type="number" name="cantidad" min="1" value="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Método de Pago</label>
-                    <select name="metodo_pago" required>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                        <option value="Yape">Yape / Plin</option>
+                <div class="client-select-wrapper">
+                    <select id="cart-cliente" required>
+                        <option value="">Seleccionar cliente...</option>
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
+                        {% endfor %}
                     </select>
+                    <button class="btn-secondary" type="button">Nuevo Cliente</button>
                 </div>
             </div>
             
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevaVenta')">Cancelar</button>
-                <button type="submit" class="btn-primary">Confirmar Venta</button>
+            <h4 style="margin-bottom: 10px; font-weight: 600;">Detalles de la Venta</h4>
+            
+            <div class="cart-items-wrapper" id="cart-items-container">
+                <div style="text-align: center; color: #888; padding: 40px 10px;" id="empty-cart-msg">
+                    No hay productos agregados al carrito.
+                </div>
             </div>
-        </form>
+            
+            <div class="billing-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="summary-subtotal">S/ 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>IGV (18%):</span>
+                    <span id="summary-igv">S/ 0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total a Pagar:</span>
+                    <span id="summary-total">S/ 0.00</span>
+                </div>
+            </div>
+            
+            <div>
+                <label style="font-weight: 600; margin-bottom: 5px;">Metodo de Pago</label>
+                <div class="payment-chip-group">
+                    <div class="payment-chip active" id="chip-efectivo">Efectivo</div>
+                    <div class="payment-chip" id="chip-tarjeta">Tarjeta</div>
+                    <div class="payment-chip" id="chip-yape">Yape / Plin</div>
+                </div>
+                <input type="hidden" id="cart-metodo-pago" value="Efectivo">
+            </div>
+            
+            <div class="cash-change-panel" id="cash-panel" style="display: block;">
+                <div class="form-row" style="margin-bottom: 0;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.8rem; margin-bottom: 2px;">Monto Recibido (S/)</label>
+                        <input type="number" id="cash-received" step="0.1" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 0.8rem; margin-bottom: 2px;">Cambio / Vuelto (S/)</label>
+                        <input type="text" id="cash-change" value="S/ 0.00" readonly style="background: #f0fdf4; font-weight: bold; border-color: #c8e6c9; color: var(--pos-success);">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: auto;">
+                <button class="btn-secondary" style="flex: 1;">Limpiar Carrito</button>
+                <button class="btn-primary" style="flex: 2; background: var(--pos-success);" id="btn-submit-venta">Confirmar Venta</button>
+            </div>
+            
+        </div>
     </div>
 </div>
-
-<script>
-    function abrirModal(idModal) { document.getElementById(idModal).style.display = 'flex'; }
-    function cerrarModal(idModal) { document.getElementById(idModal).style.display = 'none'; }
-    window.onclick = function(event) {
-        const modals = document.getElementsByClassName('modal-overlay');
-        for (let i = 0; i < modals.length; i++) {
-            if (event.target == modals[i]) modals[i].style.display = "none";
-        }
-    }
-</script>
 {% endblock %}
