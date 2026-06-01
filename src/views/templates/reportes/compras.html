@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Compras - SISFARMA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f5; color: #1a2e22; }
+        header { background: #1a6e3c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+        header h1 { font-size: 1.2rem; }
+        header span { opacity: 0.7; font-size: 0.85rem; }
+        .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #1a6e3c; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { text-decoration: underline; }
+        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; }
+
+        .filters { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid #dde8e1; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-group label { font-size: 0.8rem; font-weight: 600; color: #5a7a65; }
+        .filter-group input { border: 1px solid #c8ddd0; border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; }
+        .btn { background: #1a6e3c; color: white; border: none; border-radius: 6px; padding: 9px 20px; font-size: 0.9rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #155c30; }
+        .btn-outline { background: white; color: #1a6e3c; border: 1.5px solid #1a6e3c; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+        .btn-outline:hover { background: #e8f5ee; }
+
+        .section { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid #dde8e1; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .section h3 { font-size: 1rem; font-weight: 700; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        thead th { background: #1a6e3c; color: white; padding: 10px 12px; text-align: left; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f0f7f3; }
+        tbody td { padding: 9px 12px; border-bottom: 1px solid #e8ede9; }
+
+        .estado-recibida  { background: #e8f5ee; color: #1a6e3c; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .estado-pendiente { background: #fef3c7; color: #92400e; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .estado-anulada   { background: #fee2e2; color: #991b1b; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+
+        .empty { text-align: center; padding: 32px; color: #5a7a65; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏥 SISFARMA-PERÚ</h1>
+        <span>/ Reportes / Compras</span>
+    </header>
+
+    <div class="container">
+        <a class="back-link" href="/reportes">← Volver a reportes</a>
+        <h2>Reporte de Compras</h2>
+
+        <form class="filters" method="GET" action="/reportes/compras">
+            <div class="filter-group">
+                <label>Fecha inicio</label>
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+            </div>
+            <div class="filter-group">
+                <label>Fecha fin</label>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+            </div>
+            <button class="btn" type="submit">Filtrar</button>
+        </form>
+
+        <!-- Resumen por proveedor -->
+        <div class="section">
+            <div class="section-header">
+                <h3>Resumen por Proveedor</h3>
+                <a class="btn-outline" href="/reportes/compras/pdf?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ PDF</a>
+            </div>
+            {% if por_proveedor %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Proveedor</th>
+                        <th>N° Compras</th>
+                        <th>Total invertido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in por_proveedor %}
+                    <tr>
+                        <td>{{ p.proveedor }}</td>
+                        <td>{{ p.num_compras }}</td>
+                        <td><strong>S/ {{ "%.2f"|format(p.total_invertido) }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No hay compras en el periodo seleccionado.</div>
+            {% endif %}
+        </div>
+
+        <!-- Detalle de compras -->
+        <div class="section">
+            <div class="section-header">
+                <h3>Detalle de Compras</h3>
+            </div>
+            {% if compras %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Registrado por</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in compras %}
+                    <tr>
+                        <td>{{ c.id_compra }}</td>
+                        <td>{{ c.fecha }}</td>
+                        <td>{{ c.proveedor }}</td>
+                        <td>{{ c.registrado_por }}</td>
+                        <td>
+                            <span class="estado-{{ c.estado }}">{{ c.estado }}</span>
+                        </td>
+                        <td><strong>S/ {{ "%.2f"|format(c.total_compra) }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No hay compras en el periodo seleccionado.</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

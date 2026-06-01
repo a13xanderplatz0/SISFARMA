@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Inventario - SISFARMA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f5; color: #1a2e22; }
+        header { background: #1a6e3c; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+        header h1 { font-size: 1.2rem; }
+        header span { opacity: 0.7; font-size: 0.85rem; }
+        .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #1a6e3c; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { text-decoration: underline; }
+        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; }
+
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 10px; padding: 20px; border: 1px solid #dde8e1; text-align: center; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; color: #1a6e3c; }
+        .stat-card .value.warning { color: #d97706; }
+        .stat-card .value.danger  { color: #dc2626; }
+        .stat-card .label { font-size: 0.8rem; color: #5a7a65; margin-top: 4px; }
+
+        .section { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid #dde8e1; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .section h3 { font-size: 1rem; font-weight: 700; }
+        .export-btns { display: flex; gap: 8px; }
+        .btn-outline { background: white; color: #1a6e3c; border: 1.5px solid #1a6e3c; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+        .btn-outline:hover { background: #e8f5ee; }
+        .btn-csv { background: white; color: #2563eb; border: 1.5px solid #2563eb; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+        .btn-csv:hover { background: #eff6ff; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        thead th { background: #1a6e3c; color: white; padding: 10px 12px; text-align: left; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f0f7f3; }
+        tbody td { padding: 9px 12px; border-bottom: 1px solid #e8ede9; }
+
+        .estado-ok       { background: #e8f5ee; color: #1a6e3c; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .estado-bajo     { background: #fef3c7; color: #92400e; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .estado-vencer   { background: #fee2e2; color: #991b1b; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏥 SISFARMA-PERÚ</h1>
+        <span>/ Reportes / Inventario</span>
+    </header>
+
+    <div class="container">
+        <a class="back-link" href="/reportes">← Volver a reportes</a>
+        <h2>Reporte de Inventario</h2>
+
+        <div class="summary">
+            <div class="stat-card">
+                <div class="value">{{ resumen.total_unidades }}</div>
+                <div class="label">Total unidades en stock</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{ resumen.tipos_medicamentos }}</div>
+                <div class="label">Tipos de medicamentos</div>
+            </div>
+            <div class="stat-card">
+                <div class="value warning">{{ resumen.con_stock_bajo }}</div>
+                <div class="label">Con stock bajo</div>
+            </div>
+            <div class="stat-card">
+                <div class="value danger">{{ resumen.proximos_vencer }}</div>
+                <div class="label">Próximos a vencer (90 días)</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3>Detalle de Inventario</h3>
+                <div class="export-btns">
+                    <a class="btn-outline" href="/reportes/inventario/pdf">⬇ PDF</a>
+                    <a class="btn-csv" href="/reportes/inventario/csv">⬇ CSV</a>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Categoría</th>
+                        <th>Lote</th>
+                        <th>Stock</th>
+                        <th>Stock mín.</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in inventario %}
+                    <tr>
+                        <td>{{ row.medicamento }}</td>
+                        <td>{{ row.categoria }}</td>
+                        <td>{{ row.numero_lote }}</td>
+                        <td>{{ row.stock }}</td>
+                        <td>{{ row.stock_minimo }}</td>
+                        <td>{{ row.fecha_vencimiento }}</td>
+                        <td>
+                            {% if row.estado == 'OK' %}
+                                <span class="estado-ok">OK</span>
+                            {% elif row.estado == 'Stock bajo' %}
+                                <span class="estado-bajo">Stock bajo</span>
+                            {% else %}
+                                <span class="estado-vencer">Próx. a vencer</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

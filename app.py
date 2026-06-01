@@ -9,6 +9,8 @@ from src.routes.usuarios import usuarios_bp
 
 from src.controllers.medicamentos_controller import listar
 from src.controllers.compras_controller import listar_inventario_real
+from src.controllers.reportes_controller import reportes_bp
+
 
 # importar otros blueprints...
 
@@ -22,8 +24,7 @@ app.register_blueprint(medicamentos_bp)
 app.register_blueprint(ventas_bp)
 app.register_blueprint(compras_bp)
 app.register_blueprint(usuarios_bp)
-
-
+app.register_blueprint(reportes_bp)
 @app.context_processor
 def inyectar_usuario():
     return {"current_user": {"nombre": "Carlos Mendoza", "rol": "Administrador"}}
