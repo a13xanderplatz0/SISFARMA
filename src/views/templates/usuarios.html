@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Personal | SISFARMA{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos Modulo de Personal */
+    :root {
+        --usr-primary: #0056b3;
+        --usr-primary-hover: #004085;
+        --usr-success: #2e7d32;
+        --usr-success-bg: #e8f5e9;
+        --usr-warning: #e65100;
+        --usr-warning-bg: #fff3e0;
+        --usr-danger: #c62828;
+        --usr-danger-bg: #ffebee;
+        --usr-border: #e2e8f0;
+        --usr-card-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        --usr-modal-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    }
+
+    .tab-pills-container {
+        display: inline-flex;
+        background: #e2e8f0;
+        padding: 5px;
+        border-radius: 30px;
+        margin-bottom: 25px;
+        border: 1px solid #cbd5e1;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .tab-pill-btn {
+        padding: 10px 24px;
+        background: transparent;
+        border: none;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        color: #475569;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        outline: none;
+    }
+    
+    .tab-pill-btn:hover {
+        color: #0f172a;
+    }
+    
+    .tab-pill-btn.active {
+        background: linear-gradient(135deg, var(--usr-primary), #007bff);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+        transform: translateY(-1px);
+    }
+
+    .tab-section {
+        display: none;
+        animation: tabFadeIn 0.4s ease-out;
+    }
+    
+    .tab-section.active {
+        display: block;
+    }
+
+    @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--usr-card-shadow);
+        border: 1px solid var(--usr-border);
+        margin-bottom: 25px;
+    }
+
+    .panel-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    /* Buscador */
+    .usr-search-wrapper {
+        position: relative;
+        max-width: 350px;
+        width: 100%;
+    }
+    
+    .usr-search-wrapper input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid var(--usr-border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+    
+    .usr-search-wrapper input:focus {
+        background: white;
+        border-color: var(--usr-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+    }
+
+    /* Roles */
+    .badge-role {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    
+    .badge-role.admin {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .badge-role.farma {
+        background-color: #ccfbf1;
+        color: #0f766e;
+    }
+
+    /* Formulario Reportes */
+    .flex-form {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    
+    .flex-form .form-group {
+        margin-bottom: 0;
+        min-width: 200px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--usr-border);
+    }
+    
+    .usr-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+    
+    .usr-table th {
+        background: #f1f5f9;
+        padding: 14px 18px;
+        font-weight: 600;
+        color: #475569;
+        text-align: left;
+        border-bottom: 2px solid var(--usr-border);
+    }
+    
+    .usr-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--usr-border);
+        color: #334155;
+    }
+    
+    .usr-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .usr-table tr:hover {
+        background: #f8fafc;
+    }
+</style>
+
+<div class="header-actions">
+    <h2>Gestion del Personal del Sistema</h2>
+</div>
+
+<div>
+    <div class="tab-pills-container">
+        <button class="tab-pill-btn active" onclick="changeTab(event, 'section-mantenimiento')">Colaboradores</button>
+        <button class="tab-pill-btn" onclick="changeTab(event, 'section-reportes')">Reporte de Rendimiento</button>
+    </div>
+</div>
+
+<!-- Mantenimiento de Personal -->
+<div id="section-mantenimiento" class="tab-section active">
+    <div class="panel-card">
+        <div class="panel-header-row">
+            <div class="usr-search-wrapper">
+                <input type="text" id="usr-search" placeholder="Buscar por nombre o rol..." onkeyup="filterUsersTable()">
+            </div>
+            <button class="btn-primary" style="background: var(--usr-primary);" onclick="abrirModalRegistrar()">Registrar Colaborador</button>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="usr-table" id="usr-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre y Apellidos</th>
+                        <th>Rol</th>
+                        <th>Supervisor Asignado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usr in usuarios %}
+                    <tr class="usr-row" 
+                        data-id="{{ usr.id_usuario }}"
+                        data-nombre="{{ usr.nombre }}"
+                        data-rol="{{ usr.rol }}"
+                        data-supervisor="{{ usr.id_supervisor or '' }}">
+                        <td>#{{ usr.id_usuario }}</td>
+                        <td><strong>{{ usr.nombre }}</strong></td>
+                        <td>
+                            {% if usr.rol == 'Administrador' %}
+                                <span class="badge-role admin">Administrador</span>
+                            {% else %}
+                                <span class="badge-role farma">Farmacéutico</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usr.supervisor_nombre %}
+                                <span>{{ usr.supervisor_nombre }}</span>
+                            {% else %}
+                                <span style="color: #94a3b8; font-style: italic;">Ninguno</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn-edit" style="padding: 5px 10px; font-size: 0.85rem;" onclick="abrirModalEditar({{ usr.id_usuario }})">Editar</button>
+                            <button class="btn-delete" style="padding: 5px 10px; font-size: 0.85rem; background: var(--usr-danger);" onclick="confirmarBajaColaborador({{ usr.id_usuario }})">Dar de Baja</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">No hay colaboradores registrados en el sistema.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Reporte de Rendimiento -->
+<div id="section-reportes" class="tab-section">
+    <div class="panel-card">
+        <h3 style="margin-bottom: 10px; font-weight: 600; color: #1e293b;">Exportar Rendimiento Comercial del Personal</h3>
+        <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 20px; max-width: 800px;">
+            Este reporte analiza el desempeno de los colaboradores en la gestion comercial de la farmacia. Consolida y agrupa el total de ventas cobradas (con su respectivo monto acumulado) y la cantidad de compras ordenadas a proveedores. Utiliza filtros avanzados (HAVING) para descargar unicamente los datos de aquellos trabajadores que cuenten con un volumen minimo de ventas determinado.
+        </p>
+        
+        <form action="/usuarios/reporte/exportar" method="GET" class="flex-form" target="_blank">
+            <div class="form-group">
+                <label>Volumen Minimo de Ventas</label>
+                <input type="number" name="min_ventas" value="1" min="0" step="1" required style="max-width: 250px;">
+            </div>
+            <button class="btn-primary" type="submit" style="background: var(--usr-primary);">Descargar Reporte (CSV)</button>
+        </form>
+    </div>
+</div>
+
+<!-- REGISTRAR / EDITAR COLABORADOR -->
+<div id="modalColaborador" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3 id="modal-title">Registrar Nuevo Colaborador</h3>
+            <span class="close-btn" onclick="cerrarModal('modalColaborador')">&times;</span>
+        </div>
+        
+        <form id="form-colaborador" method="POST" action="/usuarios/nuevo">
+            <div class="form-group">
+                <label>Nombre y Apellidos</label>
+                <input type="text" name="nombre" id="colab-nombre" required placeholder="Ingrese nombre completo">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select name="rol" id="colab-rol" required onchange="actualizarRestriccionesRol()">
+                        <option value="Farmacéutico">Farmacéutico</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Supervisor</label>
+                    <select name="id_supervisor" id="colab-supervisor">
+                        <option value="">Ninguno</option>
+                        {% for admin in administradores %}
+                            <option value="{{ admin.id_usuario }}">{{ admin.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" name="contrasena" id="colab-contrasena" placeholder="Escriba la contraseña de acceso">
+                <small style="color: #64748b; display: block; margin-top: 4px;" id="pwd-help">La contraseña debe tener al menos 4 caracteres.</small>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalColaborador')">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btn-save-colab">Guardar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CONFIRMACION DE BAJA CON REASIGNACION TRANSACCIONAL (CRUD COMPLEJO) -->
+<div id="modalBajaColaborador" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>Baja del Colaborador</h3>
+            <span class="close-btn" onclick="cerrarModal('modalBajaColaborador')">&times;</span>
+        </div>
+        
+        <form id="form-baja" method="POST" action="">
+            <div style="background-color: var(--usr-danger-bg); border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: var(--usr-danger); line-height: 1.5;">
+                <p><strong>Advertencia de Integridad Referencial:</strong></p>
+                <p style="margin-top: 5px;">Este colaborador no puede ser eliminado directamente si posee registros vinculados de ventas o compras. Para proceder de forma segura, el sistema reasignara de manera transaccional todo su historial y personal subordinado al trabajador que seleccione a continuacion.</p>
+            </div>
+            
+            <div class="form-group">
+                <label>Seleccionar Receptor de Responsabilidades</label>
+                <select name="id_receptor" id="baja-receptor" required>
+                    <option value="">Seleccione el colaborador...</option>
+                    {% for usr in usuarios %}
+                        <option value="{{ usr.id_usuario }}" id="opt-receptor-{{ usr.id_usuario }}">{{ usr.nombre }} (${usr.rol})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalBajaColaborador')">Cancelar</button>
+                <button type="submit" class="btn-primary" style="background: var(--usr-danger);">Confirmar Reasignacion y Baja</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Variables locales para editar
+    const colaboradoresData = {};
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll(".usr-row");
+        rows.forEach(row => {
+            const id = parseInt(row.getAttribute("data-id"));
+            colaboradoresData[id] = {
+                id_usuario: id,
+                nombre: row.getAttribute("data-nombre"),
+                rol: row.getAttribute("data-rol"),
+                id_supervisor: row.getAttribute("data-supervisor")
+            };
+        });
+    });
+
+    // Pestañas
+    function changeTab(evt, tabId) {
+        document.querySelectorAll(".tab-section").forEach(sec => sec.classList.remove("active"));
+        document.querySelectorAll(".tab-pill-btn").forEach(btn => btn.classList.remove("active"));
+        
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Buscador
+    function filterUsersTable() {
+        const query = document.getElementById("usr-search").value.toLowerCase().trim();
+        const rows = document.querySelectorAll(".usr-row");
+        
+        rows.forEach(row => {
+            const nombre = row.getAttribute("data-nombre").toLowerCase();
+            const rol = row.getAttribute("data-rol").toLowerCase();
+            if (nombre.includes(query) || rol.includes(query)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // Abrir Registrar
+    function abrirModalRegistrar() {
+        const form = document.getElementById("form-colaborador");
+        form.reset();
+        form.action = "/usuarios/nuevo";
+        document.getElementById("modal-title").innerText = "Registrar Nuevo Colaborador";
+        document.getElementById("colab-contrasena").required = true;
+        document.getElementById("pwd-help").innerText = "La contraseña debe tener al menos 4 caracteres.";
+        
+        // Habilitar todos los supervisores
+        document.querySelectorAll("#colab-supervisor option").forEach(opt => opt.disabled = false);
+        
+        abrirModal("modalColaborador");
+    }
+
+    // Abrir Editar
+    function abrirModalEditar(id) {
+        const colab = colaboradoresData[id];
+        if (!colab) return;
+        
+        const form = document.getElementById("form-colaborador");
+        form.reset();
+        form.action = `/usuarios/editar/${id}`;
+        document.getElementById("modal-title").innerText = "Editar Datos del Colaborador";
+        
+        document.getElementById("colab-nombre").value = colab.nombre;
+        document.getElementById("colab-rol").value = colab.rol;
+        document.getElementById("colab-supervisor").value = colab.id_supervisor || "";
+        
+        // La contraseña es opcional al editar
+        document.getElementById("colab-contrasena").required = false;
+        document.getElementById("pwd-help").innerText = "Deje este campo en blanco para conservar la contraseña actual.";
+        
+        // Evitar supervisarse a si mismo
+        document.querySelectorAll("#colab-supervisor option").forEach(opt => {
+            if (parseInt(opt.value) === id) {
+                opt.disabled = true;
+            } else {
+                opt.disabled = false;
+            }
+        });
+        
+        abrirModal("modalColaborador");
+    }
+
+    // Inhabilitar supervisor si el rol es Administrador
+    function actualizarRestriccionesRol() {
+        // Logica de validacion si fuera necesario
+    }
+
+    // Confirmar Baja y abrir Reasignacion 
+    function confirmarBajaColaborador(id) {
+        const colab = colaboradoresData[id];
+        if (!colab) return;
+        
+        const form = document.getElementById("form-baja");
+        form.action = `/usuarios/eliminar/${id}`;
+        
+        // Filtrar el dropdown de receptores para no mostrar al colaborador que se dara de baja
+        const select = document.getElementById("baja-receptor");
+        select.value = "";
+        
+        document.querySelectorAll("#baja-receptor option").forEach(opt => {
+            const optVal = parseInt(opt.value);
+            if (optVal === id) {
+                opt.style.display = "none";
+                opt.disabled = true;
+            } else {
+                opt.style.display = "";
+                opt.disabled = false;
+            }
+        });
+        
+        abrirModal("modalBajaColaborador");
+    }
+
+    // Control basico de modales
+    function abrirModal(idModal) { 
+        document.getElementById(idModal).style.display = 'flex'; 
+    }
+    function cerrarModal(idModal) { 
+        document.getElementById(idModal).style.display = 'none'; 
+    }
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal-overlay');
+        for (let i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) modals[i].style.display = "none";
+        }
+    }
+</script>
+{% endblock %}
