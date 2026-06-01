@@ -1,206 +1,142 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Reporte de Ventas - SISFARMA</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f5; color: #1a2e22; }
+{% extends 'base.html' %}
+{% block title %}Reporte de Ventas - SISFARMA{% endblock %}
 
-        header {
-            background: #1a6e3c; color: white;
-            padding: 16px 32px; display: flex; align-items: center; gap: 12px;
-        }
-        header h1 { font-size: 1.2rem; }
-        header span { opacity: 0.7; font-size: 0.85rem; }
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Reporte de Ventas</h1>
+    <a href="/reportes" class="btn-back">← Volver</a>
+</div>
 
-        .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
-
-        .back-link { display: inline-block; margin-bottom: 20px; color: #1a6e3c;
-                     text-decoration: none; font-size: 0.9rem; }
-        .back-link:hover { text-decoration: underline; }
-
-        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; }
-
-        /* Filtros */
-        .filters {
-            background: white; border-radius: 10px;
-            padding: 20px 24px; margin-bottom: 24px;
-            border: 1px solid #dde8e1;
-            display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
-        }
-        .filter-group { display: flex; flex-direction: column; gap: 4px; }
-        .filter-group label { font-size: 0.8rem; font-weight: 600; color: #5a7a65; }
-        .filter-group input {
-            border: 1px solid #c8ddd0; border-radius: 6px;
-            padding: 8px 12px; font-size: 0.9rem; color: #1a2e22;
-        }
-        .btn {
-            background: #1a6e3c; color: white; border: none;
-            border-radius: 6px; padding: 9px 20px; font-size: 0.9rem;
-            cursor: pointer; font-weight: 600; text-decoration: none;
-            display: inline-block;
-        }
-        .btn:hover { background: #155c30; }
-        .btn-outline {
-            background: white; color: #1a6e3c;
-            border: 1.5px solid #1a6e3c; border-radius: 6px;
-            padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
-            font-weight: 600; text-decoration: none; display: inline-block;
-        }
-        .btn-outline:hover { background: #e8f5ee; }
-        .btn-csv {
-            background: white; color: #2563eb;
-            border: 1.5px solid #2563eb; border-radius: 6px;
-            padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
-            font-weight: 600; text-decoration: none; display: inline-block;
-        }
-        .btn-csv:hover { background: #eff6ff; }
-
-        /* Resumen cards */
-        .summary {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px; margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white; border-radius: 10px; padding: 20px;
-            border: 1px solid #dde8e1; text-align: center;
-        }
-        .stat-card .value { font-size: 1.8rem; font-weight: 700; color: #1a6e3c; }
-        .stat-card .label { font-size: 0.8rem; color: #5a7a65; margin-top: 4px; }
-
-        /* Tablas */
-        .section { background: white; border-radius: 10px; padding: 20px 24px;
-                   margin-bottom: 24px; border: 1px solid #dde8e1; }
-        .section-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px;
-        }
-        .section h3 { font-size: 1rem; font-weight: 700; }
-
-        .export-btns { display: flex; gap: 8px; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-        thead th {
-            background: #1a6e3c; color: white;
-            padding: 10px 12px; text-align: left; font-weight: 600;
-        }
-        tbody tr:nth-child(even) { background: #f0f7f3; }
-        tbody td { padding: 9px 12px; border-bottom: 1px solid #e8ede9; }
-
-        .badge-ok { background: #e8f5ee; color: #1a6e3c; padding: 2px 8px;
-                    border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-        .empty { text-align: center; padding: 32px; color: #5a7a65; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>🏥 SISFARMA-PERÚ</h1>
-        <span>/ Reportes / Ventas</span>
-    </header>
-
-    <div class="container">
-        <a class="back-link" href="/reportes">← Volver a reportes</a>
-        <h2>Reporte de Ventas</h2>
-
-        <!-- Filtro de fechas -->
-        <form class="filters" method="GET" action="/reportes/ventas">
-            <div class="filter-group">
-                <label>Fecha inicio</label>
-                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
-            </div>
-            <div class="filter-group">
-                <label>Fecha fin</label>
-                <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
-            </div>
-            <button class="btn" type="submit">Filtrar</button>
-        </form>
-
-        <!-- Resumen -->
-        <div class="summary">
-            <div class="stat-card">
-                <div class="value">S/ {{ "%.2f"|format(resumen.total_ingresos) }}</div>
-                <div class="label">Total Ingresos</div>
-            </div>
-            <div class="stat-card">
-                <div class="value">{{ resumen.num_ventas }}</div>
-                <div class="label">Ventas realizadas</div>
-            </div>
-            {% if resumen.num_ventas > 0 %}
-            <div class="stat-card">
-                <div class="value">S/ {{ "%.2f"|format(resumen.total_ingresos / resumen.num_ventas) }}</div>
-                <div class="label">Promedio por venta</div>
-            </div>
-            {% endif %}
+<!-- Filtros -->
+<div class="card mb">
+    <form method="GET" action="/reportes/ventas" class="filters-form">
+        <div class="filter-group">
+            <label>Fecha inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
         </div>
-
-        <!-- Tabla de ventas -->
-        <div class="section">
-            <div class="section-header">
-                <h3>Detalle de Ventas</h3>
-                <div class="export-btns">
-                    <a class="btn-outline" href="/reportes/ventas/pdf?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ PDF</a>
-                    <a class="btn-csv" href="/reportes/ventas/csv?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ CSV</a>
-                </div>
-            </div>
-            {% if ventas %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Atendido por</th>
-                        <th>Método Pago</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for v in ventas %}
-                    <tr>
-                        <td>{{ v.id_venta }}</td>
-                        <td>{{ v.fecha }}</td>
-                        <td>{{ v.cliente }}</td>
-                        <td>{{ v.usuario }}</td>
-                        <td>{{ v.metodo_pago or '—' }}</td>
-                        <td><strong>S/ {{ "%.2f"|format(v.total) }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty">No hay ventas en el periodo seleccionado.</div>
-            {% endif %}
+        <div class="filter-group">
+            <label>Fecha fin</label>
+            <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
         </div>
+        <button class="btn-primary" type="submit">Filtrar</button>
+    </form>
+</div>
 
-        <!-- Productos más vendidos -->
-        <div class="section">
-            <div class="section-header">
-                <h3>Productos más vendidos</h3>
-            </div>
-            {% if productos_top %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Medicamento</th>
-                        <th>Unidades vendidas</th>
-                        <th>Ingreso total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in productos_top %}
-                    <tr>
-                        <td>{{ p.medicamento }}</td>
-                        <td>{{ p.total_vendido }}</td>
-                        <td><strong>S/ {{ "%.2f"|format(p.ingreso_total) }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty">Sin datos de productos para este periodo.</div>
-            {% endif %}
+<!-- Resumen -->
+<div class="stats-row mb">
+    <div class="stat-box">
+        <div class="stat-value">S/ {{ "%.2f"|format(resumen.total_ingresos) }}</div>
+        <div class="stat-label">Total Ingresos</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value">{{ resumen.num_ventas }}</div>
+        <div class="stat-label">Ventas realizadas</div>
+    </div>
+    {% if resumen.num_ventas > 0 %}
+    <div class="stat-box">
+        <div class="stat-value">S/ {{ "%.2f"|format(resumen.total_ingresos / resumen.num_ventas) }}</div>
+        <div class="stat-label">Promedio por venta</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Tabla ventas -->
+<div class="card mb">
+    <div class="card-header">
+        <h2>Detalle de Ventas</h2>
+        <div class="export-btns">
+            <a class="btn-export-pdf" href="/reportes/ventas/pdf?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ PDF</a>
+            <a class="btn-export-csv" href="/reportes/ventas/csv?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ CSV</a>
         </div>
     </div>
-</body>
-</html>
+    {% if ventas %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Atendido por</th>
+                <th>Método Pago</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventas %}
+            <tr>
+                <td>#{{ v.id_venta }}</td>
+                <td>{{ v.fecha }}</td>
+                <td><strong>{{ v.cliente }}</strong></td>
+                <td>{{ v.usuario }}</td>
+                <td>{{ v.metodo_pago or '—' }}</td>
+                <td><strong>S/ {{ "%.2f"|format(v.total) }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-msg">No hay ventas en el periodo seleccionado.</p>
+    {% endif %}
+</div>
+
+<!-- Top productos -->
+<div class="card">
+    <div class="card-header">
+        <h2>Productos más vendidos</h2>
+    </div>
+    {% if productos_top %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Medicamento</th>
+                <th>Unidades vendidas</th>
+                <th>Ingreso total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos_top %}
+            <tr>
+                <td><strong>{{ p.medicamento }}</strong></td>
+                <td>{{ p.total_vendido }}</td>
+                <td><strong>S/ {{ "%.2f"|format(p.ingreso_total) }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-msg">Sin datos de productos para este periodo.</p>
+    {% endif %}
+</div>
+
+<style>
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-title { font-size: 1.6rem; font-weight: 700; color: #1a2e22; }
+.btn-back { color: #3b82f6; text-decoration: none; font-size: 0.9rem; }
+.btn-back:hover { text-decoration: underline; }
+.card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px 24px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-header h2 { font-size: 1rem; font-weight: 700; color: #1a2e22; }
+.mb { margin-bottom: 20px; }
+.filters-form { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.78rem; font-weight: 600; color: #64748b; }
+.filter-group input { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; color: #1a2e22; }
+.btn-primary { background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+.btn-primary:hover { background: #2563eb; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.stat-box { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; text-align: center; }
+.stat-value { font-size: 1.6rem; font-weight: 700; color: #1a2e22; }
+.stat-label { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+.export-btns { display: flex; gap: 8px; }
+.btn-export-pdf { background: white; color: #1a2e22; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+.btn-export-pdf:hover { background: #f8fafc; }
+.btn-export-csv { background: white; color: #3b82f6; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+.btn-export-csv:hover { background: #eff6ff; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.data-table thead th { background: #f8fafc; color: #64748b; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 0.8rem; border-bottom: 1px solid #e2e8f0; }
+.data-table tbody td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #1a2e22; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: #f8fafc; }
+.empty-msg { text-align: center; padding: 32px; color: #94a3b8; font-size: 0.9rem; }
+</style>
+{% endblock %}
