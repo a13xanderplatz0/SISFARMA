@@ -96,3 +96,39 @@ python -m src.database.setup
 ```bash
 python app.py
 ```
+
+## 📦 Dependencias que deben instalar tus compañeros
+
+1. Instalar Python 3.11 o 3.12 (o 3.13 si ya está probado en el equipo).
+2. Instalar MySQL Server (MySQL 8.x recomendado) y dejar el servicio ejecutando.
+3. Instalar dependencias de Python desde el proyecto:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Copiar `.env.example` a `.env` y actualizar las credenciales:
+
+```bash
+cp .env.example .env
+```
+
+5. Ajustar el archivo `.env` con los valores correctos de MySQL.
+6. Ejecutar la inicialización de la base de datos:
+
+```bash
+python -m src.database.setup
+```
+
+7. Ejecutar la aplicación:
+
+```bash
+python app.py
+```
+
+### 🔧 Requisitos específicos de MySQL
+
+- MySQL Server debe estar instalado y corriendo.
+- El usuario y la contraseña en `.env` deben ser válidos para el servidor.
+- Si MySQL usa `caching_sha2_password`, dejar `MYSQL_AUTH_PLUGIN=caching_sha2_password`.
+- Si usan otro plugin, ajustar `MYSQL_AUTH_PLUGIN` en `.env`.
