@@ -420,3 +420,84 @@ def exportar_ventas_csv():
     output.seek(0)
     return Response(output.getvalue(), mimetype='text/csv',
                     headers={'Content-Disposition': f'attachment; filename=ventas_{fecha_inicio}_{fecha_fin}.csv'})
+
+@reportes_bp.route('/reportes/compras/csv')
+def exportar_compras_csv():
+    fecha_inicio = request.args.get('fecha_inicio', '')
+    fecha_fin = request.args.get('fecha_fin', '')
+    
+    conn = get_connection()
+    cursor = conn.cursor() 
+    
+
+    query = """
+        SELECT 
+            c.id_compra,
+            c.fecha,
+            p.nombre AS proveedor,
+            m.nombre AS medicamento,
+            dc.cantidad,
+            dc.precio AS precio_unitario,
+            (dc.cantidad * dc.precio) AS total_item,
+            c.estado
+        FROM COMPRA c
+        JOIN PROVEEDOR p ON c.id_proveedor = p.id_proveedor
+        JOIN DETALLE_COMPRA dc ON c.id_compra = dc.id_compra
+        JOIN MEDICAMENTO m ON dc.id_medicamento = m.id_medicamento
+        WHERE (%s = '' OR c.fecha >= %s) AND (%s = '' OR c.fecha <= %s)
+        ORDER BY c.fecha DESC, c.id_compra DESC;
+    """
+    
+    cursor.execute(query, (fecha_inicio, fecha_inicio, fecha_fin, fecha_fin))
+    compras_data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    output = io.StringIO()
+    output.write('\ufeff')
+    writer = csv.writer(output)
+    
+
+    writer.writerow([
+        'ID Compra', 'Fecha', 'Proveedor', 'Medicamento', 
+        'Cantidad', 'Precio Unitario (S/)', 'Total (S/)', 'Estado'
+    ])
+    
+    for row in compras_data:
+
+        if isinstance(row, dict):
+            id_c = row.get('id_compra')
+            fec = row.get('fecha')
+            prov = row.get('proveedor')
+            med = row.get('medicamento')
+            cant = row.get('cantidad', 0)
+            p_uni = row.get('precio_unitario', 0.0)
+            tot = row.get('total_item', 0.0)
+            est = row.get('estado', 'pendiente')
+        else:
+            id_c = row[0]
+            fec = row[1]
+            prov = row[2]
+            med = row[3]
+            cant = row[4]
+            p_uni = row[5]
+            tot = row[6]
+            est = row[7]
+            
+        writer.writerow([
+            f"#OC-{id_c:04d}" if isinstance(id_c, int) else id_c,
+            fec,
+            prov,
+            med,
+            cant,
+            f"{float(p_uni):.2f}",
+            f"{float(tot):.2f}",
+            str(est).upper()
+        ])
+        
+    output.seek(0)
+    return Response(
+        output.getvalue(), 
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename=reporte_compras_{date.today()}.csv'}
+    )

@@ -26,7 +26,10 @@
 <div class="card mb">
     <div class="card-header">
         <h2>Resumen por Proveedor</h2>
-        <a class="btn-export-pdf" href="/reportes/compras/pdf?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ PDF</a>
+        <div class="export-btns">
+            <a class="btn-export-pdf" href="/reportes/compras/pdf?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ PDF</a>
+            <a class="btn-export-csv" href="/reportes/compras/csv?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}">⬇ CSV</a>
+        </div>
     </div>
     {% if por_proveedor %}
     <table class="data-table">
@@ -121,5 +124,8 @@
 .badge-warning { background: #fef3c7; color: #d97706; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 .badge-danger { background: #fee2e2; color: #dc2626; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 .empty-msg { text-align: center; padding: 32px; color: #94a3b8; font-size: 0.9rem; }
+.export-btns { display: flex; gap: 8px; align-items: center; }
+.btn-export-csv { background: white; color: #3b82f6; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+.btn-export-csv:hover { background: #eff6ff; }
 </style>
 {% endblock %}
