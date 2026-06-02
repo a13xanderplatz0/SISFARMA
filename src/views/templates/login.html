@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | SISFARMA</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), 
+                        url('https://img.magnific.com/foto-gratis/abstracto-borroso-centro-comercial_1203-8821.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
+            background-size: cover;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-card { 
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            backdrop-filter: blur(10px);
+        }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .btn-login { background: #ef4444; color: white; border: none; padding: 14px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1.05rem; cursor: pointer; transition: background 0.3s; }
+        .btn-login:hover { background: #dc2626; } /* Rojo más oscuro al pasar el mouse */
+        .error { color: #ef4444; margin-bottom: 15px; font-size: 0.9rem; background: #fee2e2; padding: 10px; border-radius: 6px;}
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h1 style="color: #0f172a; margin-top: 0; font-size: 2rem;">SISFARMA</h1>
+    <p style="color: #64748b; margin-bottom: 30px;">Ingresa tus credenciales</p>
+    
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form action="/login" method="POST">
+        <div class="input-group">
+            <label style="font-size: 0.9rem; font-weight: bold; color: #334155; display:block; margin-bottom: 5px;">Usuario</label>
+            <input type="text" name="nombre" required placeholder="Ej: admin">
+        </div>
+        <div class="input-group">
+            <label style="font-size: 0.9rem; font-weight: bold; color: #334155; display:block; margin-bottom: 5px;">Contraseña</label>
+            <input type="password" name="contrasena" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-login">Iniciar Sesión</button>
+    </form>
+</div>
+
+</body>
+</html>

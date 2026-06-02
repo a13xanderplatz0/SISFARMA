@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, make_response, Response
+from flask import Blueprint, render_template, request, make_response, Response, session
 from src.database.connection import get_connection
 import csv
 import io
@@ -16,6 +16,15 @@ reportes_bp = Blueprint('reportes', __name__)
 # QUERIES
 # ─────────────────────────────────────────────
 
+@reportes_bp.before_request
+def verificar_permisos():
+    
+    if 'id_usuario' not in session:
+        return redirect('/login')
+    
+    if session.get('rol') != 'Administrador':
+        return "Acceso denegado. Esta sección es solo para el Administrador.", 403
+    
 def query_ventas_por_periodo(fecha_inicio, fecha_fin):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)

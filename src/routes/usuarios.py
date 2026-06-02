@@ -1,6 +1,6 @@
 import csv
 from io import StringIO
-from flask import Blueprint, render_template, request, redirect, url_for, Response
+from flask import Blueprint, render_template, request, redirect, url_for, Response, session
 
 from src.controllers.usuarios_controller import (
     listar_usuarios_y_administradores,
@@ -11,6 +11,15 @@ from src.controllers.usuarios_controller import (
 )
 
 usuarios_bp = Blueprint("usuarios", __name__, url_prefix="/usuarios")
+
+@usuarios_bp.before_request
+def verificar_permisos():
+    
+    if 'id_usuario' not in session:
+        return redirect('/login')
+    
+    if session.get('rol') != 'Administrador':
+        return "Acceso denegado. Esta sección es solo para el Administrador.", 403
 
 @usuarios_bp.route("/", methods=["GET"])
 def index():

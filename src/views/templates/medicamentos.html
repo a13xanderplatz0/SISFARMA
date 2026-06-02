@@ -5,7 +5,9 @@
 {% block content %}
 <div class="header-actions">
     <h2>Catálogo de Medicamentos</h2>
-    <button class="btn-primary" onclick="abrirModal('modalNuevoMedicamento')">+ Nuevo Medicamento</button>
+    {% if current_user and current_user.rol == 'Administrador' %}
+        <button class="btn-primary" onclick="abrirModal('modalNuevoMedicamento')">+ Nuevo Medicamento</button>
+    {% endif %}
 </div>
 
 <!-- Tabla de datos procesada por Jinja2 -->

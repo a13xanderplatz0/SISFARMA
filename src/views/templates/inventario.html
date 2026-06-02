@@ -5,7 +5,9 @@
 {% block content %}
 <div class="header-actions">
     <h2>Control de Inventario y Lotes</h2>
-    <button class="btn-primary" onclick="abrirModal('modalAjusteStock')">+ Registrar Ingreso</button>
+    {% if current_user and current_user.rol == 'Administrador' %}
+        <button class="btn-primary" onclick="abrirModal('modalAjusteStock')">+ Registrar Ingreso</button>
+    {% endif %}
 </div>
 
 <table class="data-table">
@@ -50,7 +52,11 @@
             </td>
             
             <td>
-                <button class="btn-edit">Ajustar</button>
+                {% if current_user and current_user.rol == 'Administrador' %}
+                    <button class="btn-edit">Ajustar</button>
+                {% else %}
+                    <span style="color: #94a3b8; font-size: 0.9em; font-style: italic;">Solo lectura</span>
+                {% endif %}
             </td>
         </tr>
         {% else %}
