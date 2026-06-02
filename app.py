@@ -15,7 +15,6 @@ from src.controllers.medicamentos_controller import listar
 from src.controllers.compras_controller import listar_inventario_real, actualizar_stock_inventario
 from src.controllers.reportes_controller import reportes_bp
 
-# importar otros blueprints...
 
 app = Flask(
     __name__,
@@ -35,17 +34,16 @@ app.register_blueprint(auth_bp)
 
 @app.context_processor
 def inyectar_usuario():
-    # SI hay un usuario en sesión, pasamos sus datos al HTML
+    
     if 'id_usuario' in session:
         return {"current_user": {"nombre": session['nombre'], "rol": session['rol']}}
     
-    # SI NO hay nadie (como cuando estás en la pantalla de login), pasamos None
-    # ¡OJO! No uses redirect aquí, solo devuelve el diccionario con None
+    
     return {"current_user": None}
 
 @app.route('/')
 def inicio():
-    # Si no hay sesión iniciada, lo mandamos al login
+    
     if 'id_usuario' not in session:
         return redirect('/login')
     return redirect('/medicamentos')
@@ -65,11 +63,11 @@ CLIENTES_DB = [
 
 @app.route('/inventario')
 def inventario():
-    # Validación: Si no hay sesión, al login
+    
     if 'id_usuario' not in session:
         return redirect('/login')
 
-    # Datos reales desde la base de datos (v2)
+    
     inventario_db = listar_inventario_real()
 
     return render_template(
@@ -80,7 +78,7 @@ def inventario():
 
 @app.route('/inventario/ingreso', methods=['POST'])
 def inventario_ingreso():
-    # Candado: Solo Administrador
+    
     if session.get('rol') != 'Administrador':
         return "Acceso denegado. Solo administradores pueden ingresar stock.", 403
 

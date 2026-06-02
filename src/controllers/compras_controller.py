@@ -2,15 +2,23 @@ from src.database.connection import get_connection, execute_query
 
 def listar_todo():
     compras_query = """
-        SELECT c.id_compra, c.fecha, c.estado, p.nombre AS proveedor_nombre, u.nombre AS usuario_nombre
+        SELECT c.id_compra, c.fecha, c.estado, 
+               d.cantidad, d.precio AS precio_unitario, 
+               (d.cantidad * d.precio) AS total_compra,
+               p.nombre AS proveedor_nombre, u.nombre AS usuario_nombre,
+               m.nombre AS medicamento_nombre
         FROM COMPRA c
         JOIN PROVEEDOR p ON c.id_proveedor = p.id_proveedor
         JOIN USUARIO u ON c.id_usuario = u.id_usuario
+        LEFT JOIN DETALLE_COMPRA d ON c.id_compra = d.id_compra
+        LEFT JOIN MEDICAMENTO m ON d.id_medicamento = m.id_medicamento
         ORDER BY c.id_compra DESC
     """
+    
     proveedores_query = "SELECT id_proveedor, nombre FROM PROVEEDOR"
     medicamentos_query = "SELECT id_medicamento, nombre FROM MEDICAMENTO"
 
+    from src.database.connection import execute_query
     compras = execute_query(compras_query, fetch_all=True)
     proveedores = execute_query(proveedores_query, fetch_all=True)
     medicamentos = execute_query(medicamentos_query, fetch_all=True)
@@ -97,3 +105,26 @@ def actualizar_stock_inventario(id_inventario, cantidad, motivo=None):
     """
     execute_query(update_query, (cantidad, id_inventario))
     return True
+
+def recibir_compra(id_compra):
+    from src.database.connection import get_connection
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    
+    cursor.execute("UPDATE COMPRA SET estado = 'recibida' WHERE id_compra = %s", (id_compra,))
+    conn.commit()
+    
+    cursor.close()
+    conn.close()
+
+def anular_compra(id_compra):
+    query = "UPDATE COMPRA SET estado = 'anulada' WHERE id_compra = %s"
+    from src.database.connection import execute_query
+
+    try:
+        execute_query(query, (id_compra,))
+        return True
+    except Exception as e:
+        print("Error al anular compra:", e)
+        return False    

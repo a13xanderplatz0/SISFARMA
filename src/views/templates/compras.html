@@ -16,7 +16,7 @@
             <th>Proveedor</th>
             <th>Generada por</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th style="text-align: center;">Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -38,10 +38,33 @@
             </td>
             
             <td>
-                <button class="btn-secondary">Ver Items</button>
-                {% if compra.estado == 'pendiente' %}
-                    <button class="btn-edit" title="Marcar como recibida">✓ Recibir</button>
-                {% endif %}
+                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                    
+                    <button class="btn-secondary" style="white-space: nowrap; height: 34px; padding: 0 12px; display: flex; align-items: center;" onclick="abrirModalDetalle(
+                        '{{ compra.id_compra }}', 
+                        '{{ compra.proveedor_nombre }}', 
+                        '{{ compra.estado }}', 
+                        '{{ compra.fecha }}', 
+                        '{{ compra.medicamento_nombre if compra.medicamento_nombre is not none else 'No registrado' }}', 
+                        '{{ compra.cantidad if compra.cantidad is not none else '0' }}', 
+                        '{{ compra.total_compra if compra.total_compra is not none else '0.00' }}'
+                    )">Ver Items</button>
+                    
+                    {% if compra.estado == 'pendiente' %}
+                    <form action="/compras/recibir/{{ compra.id_compra }}" method="POST" style="margin: 0; padding: 0;">
+                        <button type="submit" class="btn-primary" style="background-color: #10b981; border: none; height: 34px; padding: 0 12px; display: flex; align-items: center; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap;" title="Marcar como recibida">
+                            ✓ Recibir
+                        </button>
+                    </form>
+
+                    <form action="/compras/anular/{{ compra.id_compra }}" method="POST" style="margin: 0; padding: 0;">
+                        <button type="submit" class="btn-primary" style="background-color: #ef4444; border: none; height: 34px; padding: 0 12px; display: flex; align-items: center; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap;" title="Anular orden de compra">
+                            ✗ Anular
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                </div>
             </td>
         </tr>
         {% else %}
@@ -102,8 +125,8 @@
                     <input type="number" name="cantidad" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Precio de Compra Total</label>
-                    <input type="number" step="0.01" name="precio_compra" placeholder="Ej. 150.50" required>
+                    <label style="white-space: nowrap;">Precio Unitario (S/)</label>
+                    <input type="number" step="0.01" name="precio_compra" placeholder="Ej. 15.50" required>
                 </div>
             </div>
 
@@ -126,6 +149,33 @@
     </div>
 </div>
 
+<div id="modalDetalleCompra" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+            <h3>Detalles de la Orden</h3>
+            <span class="close-btn" onclick="cerrarModal('modalDetalleCompra')">&times;</span>
+        </div>
+        
+        <div style="margin: 15px 0; font-size: 1.05rem;">
+            <p style="margin-bottom: 8px;"><strong>ID Orden:</strong> #OC-<span id="det-id"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Proveedor:</strong> <span id="det-prov"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Fecha Solicitud:</strong> <span id="det-fecha"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Estado:</strong> <span id="det-est" style="text-transform: capitalize; font-weight:bold; color: #0f172a;"></span></p>
+        </div>
+
+        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; margin: 15px 0;">
+            <h4 style="margin-top: 0; margin-bottom: 10px; color: #334155;">Información del Producto</h4>
+            <p style="margin-bottom: 5px;"><strong>Medicamento:</strong> <span id="det-med"></span></p>
+            <p style="margin-bottom: 5px;"><strong>Cantidad:</strong> <span id="det-cant"></span> un.</p>
+            <p style="margin-bottom: 0;"><strong>Total Compra:</strong> S/ <span id="det-total"></span></p>
+        </div>
+        
+        <div class="modal-footer" style="margin-top: 20px;">
+            <button class="btn-secondary" onclick="cerrarModal('modalDetalleCompra')" style="width: 100%;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function abrirModal(idModal) { document.getElementById(idModal).style.display = 'flex'; }
     function cerrarModal(idModal) { document.getElementById(idModal).style.display = 'none'; }
@@ -134,6 +184,18 @@
         for (let i = 0; i < modals.length; i++) {
             if (event.target == modals[i]) modals[i].style.display = "none";
         }
+    }
+    function abrirModalDetalle(id, prov, estado, fecha, med, cant, total) { 
+        document.getElementById('det-id').innerText = String(id).padStart(4, '0');
+        document.getElementById('det-prov').innerText = prov;
+        document.getElementById('det-est').innerText = estado;
+        document.getElementById('det-fecha').innerText = fecha;
+        
+        document.getElementById('det-med').innerText = med || 'No especificado';
+        document.getElementById('det-cant').innerText = cant || '0';
+        document.getElementById('det-total').innerText = total || '0.00';
+        
+        document.getElementById('modalDetalleCompra').style.display = 'flex'; 
     }
 </script>
 {% endblock %}
