@@ -6,6 +6,7 @@ from src.routes.medicamentos import medicamentos_bp
 from src.routes.ventas import ventas_bp
 from src.routes.compras import compras_bp
 from src.routes.usuarios import usuarios_bp
+from src.routes.proveedores import proveedores_bp   
 
 from src.controllers.medicamentos_controller import listar
 from src.controllers.compras_controller import listar_inventario_real, actualizar_stock_inventario
@@ -24,6 +25,7 @@ app.register_blueprint(ventas_bp)
 app.register_blueprint(compras_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(reportes_bp)
+app.register_blueprint(proveedores_bp)
 @app.context_processor
 def inyectar_usuario():
     return {"current_user": {"nombre": "Carlos Mendoza", "rol": "Administrador"}}
@@ -37,13 +39,7 @@ CLIENTES_DB = [
     {"id_cliente": 5, "nombre": "Lucía Fernández"},
 ]
 
-PROVEEDORES_DB = [
-    {"id_proveedor": 1, "nombre": "Droguería FarmaSalud S.A."},
-    {"id_proveedor": 2, "nombre": "Laboratorios Medicor"},
-    {"id_proveedor": 3, "nombre": "Distribuidora BioGénesis"},
-    {"id_proveedor": 4, "nombre": "PharmaNorte Perú"},
-    {"id_proveedor": 5, "nombre": "Suministros Médicos Globales"},
-]
+
 
 
 @app.route('/')
