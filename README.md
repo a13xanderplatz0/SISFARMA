@@ -132,3 +132,63 @@ python app.py
 - El usuario y la contraseña en `.env` deben ser válidos para el servidor.
 - Si MySQL usa `caching_sha2_password`, dejar `MYSQL_AUTH_PLUGIN=caching_sha2_password`.
 - Si usan otro plugin, ajustar `MYSQL_AUTH_PLUGIN` en `.env`.
+
+
+# 📄 Reporte de Optimización: `optimizacion.md`
+
+Este documento contiene el análisis técnico del comportamiento de las tres consultas del laboratorio de rendimiento sobre un dataset de 100,001 registros generados en el motor MySQL.
+
+---
+
+## 1. Primer EXPLAIN (Sin Modificaciones)
+
+Se evaluó el estado inicial de la base de datos sin alterar el esquema físico estructurado, obteniendo los siguientes planes de ejecución analíticos:
+
+* **Consulta 1 (`WHERE correo = '...'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. Obliga al motor a examinar linealmente toda la tabla.
+* **Consulta 2 (`WHERE apellido = '...' AND estado = '...'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. No existen estructuras secundarias para indexar cadenas parciales de texto.
+* **Consulta 3 (`WHERE estado = 'Activo'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. Recorrido completo para hallar coincidencias generales de estado.
+
+---
+
+## 2. Cálculo de la Selectividad
+
+Aplicamos la fórmula analítica de selectividad requerida para evaluar de forma matemática en qué columnas es viable inyectar un índice y en cuáles es perjudicial:
+
+$$\text{Selectividad} = \frac{\text{Filas devueltas por el filtro}}{\text{Total de filas en la tabla}}$$
+
+### Caso Consulta 1 (Correo)
+* **Filas resultantes:** 1
+* **Filas totales:** 100,001
+$$\text{Selectividad} = \frac{1}{100001} \approx 0.00000999 \text{ (0.001\%)} $$
+* **Evaluación:** **Altamente Positiva**. La selectividad es muy inferior al umbral recomendado del 20%. Exige la inclusión de un índice de acceso directo.
+
+### Caso Consulta 2 (Apellido y Estado)
+* En el script de inserción, los apellidos se repiten uniformemente en ciclos de 100. Al haber 100,000 registros, hay 1,000 filas por cada apellido. Cerca del 80% están activos.
+* **Filas resultantes:** ~800 filas.
+* **Filas totales:** 100,001.
+$$\text{Selectividad} = \frac{800}{100001} \approx 0.00799 \text{ (0.8\%)} $$
+* **Evaluación:** **Positiva**. Al representar menos del 1% del volumen total de datos, el uso de una clave de búsqueda secundaria evitará procesar más de 99,000 registros innecesarios.
+
+### Caso Consulta 3 (Estado)
+* Por diseño del algoritmo de inserción (`CASE WHEN i % 5 = 0 THEN 'Inactivo' ELSE 'Activo' END`), el **80% de la tabla** posee el estado 'Activo'.
+* **Filas resultantes:** ~80,000 filas.
+* **Filas totales:** 100,001.
+$$\text{Selectividad} = \frac{80000}{100001} \approx 0.80 \text{ (80\%)} $$
+* **Evaluación:** **Negativa**. Cuando la consulta recupera la gran mayoría de la tabla (80%), el optimizador prefiere ignorar los índices (debido al coste excesivo de paginación aleatoria por registros dispersos) y opta por leer la tabla secuencialmente de forma directa.
+
+---
+
+## 3. Propuesta y Creación de Índices
+
+Atendiendo a las conclusiones analíticas de selectividad, se aplicó la siguiente arquitectura física de indexación:
+
+1. **Para Consulta 1:** Un **Índice Simple Único** por el campo de identidad unívoca (`correo`).
+2. **Para Consulta 2:** Un **Índice Compuesto** que asocie en primera posición `apellido` y en segunda instancia `estado`, cubriendo de forma óptima el filtro multinivel.
+3. **Para Consulta 3:** **Ninguno (Evaluación Negativa)**, ya que la creación de un índice sobre una columna de bajísima selectividad (baja variabilidad de estados en el negocio) desperdiciaría espacio de almacenamiento sin reportar beneficios.
+
+```sql
+-- 1. Optimización para la consulta de Correo
+CREATE UNIQUE INDEX idx_usuarios_correo ON usuarios (correo);
+
+-- 2. Optimización para la consulta compuesta de Apellido y Estado
+CREATE INDEX idx_usuarios_apellido_estado ON usuarios (apellido, estado);
