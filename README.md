@@ -134,61 +134,69 @@ python app.py
 - Si usan otro plugin, ajustar `MYSQL_AUTH_PLUGIN` en `.env`.
 
 
-# 📄 Reporte de Optimización: `optimizacion.md`
+# Reporte Comparativo de Optimización de Rendimiento
+**Laboratorio:** El Desafío de Rendimiento
 
-Este documento contiene el análisis técnico del comportamiento de las tres consultas del laboratorio de rendimiento sobre un dataset de 100,001 registros generados en el motor MySQL.
+Este documento contiene el análisis técnico del comportamiento de tres consultas sobre un dataset de 100,001 registros generados en PostgreSQL.
 
 ---
 
-## 1. Primer EXPLAIN (Sin Modificaciones)
+## 1. Ejecución Inicial (Sin Modificaciones)
 
-Se evaluó el estado inicial de la base de datos sin alterar el esquema físico estructurado, obteniendo los siguientes planes de ejecución analíticos:
+Se evaluó el estado inicial de la base de datos obteniendo los siguientes planes de ejecución mediante `EXPLAIN ANALYZE`:
 
-* **Consulta 1 (`WHERE correo = '...'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. Obliga al motor a examinar linealmente toda la tabla.
-* **Consulta 2 (`WHERE apellido = '...' AND estado = '...'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. No existen estructuras secundarias para indexar cadenas parciales de texto.
-* **Consulta 3 (`WHERE estado = 'Activo'`):** Tipo de acceso `ALL` (**Seq Scan**), evaluando **100,001 filas**. Recorrido completo para hallar coincidencias generales de estado.
+* **Consulta 1 (`WHERE correo = 'carlos.mendoza@api.com'`):** 
+  * Plan: `Seq Scan` (Sequential Scan)
+  * Costo teórico: `0.00..1834.09`
+  * Tiempo real: `19.411 ms`
+  * **Análisis:** Obliga al motor a examinar linealmente las 100,001 filas.
+
+* **Consulta 2 (`WHERE apellido = 'Apellido_45' AND estado = 'Activo'`):** 
+  * Plan: `Seq Scan`
+  * Costo teórico: `0.00..1954.30`
+  * Tiempo real: `19.067 ms`
+  * **Análisis:** Al no existir estructuras secundarias, evalúa toda la tabla.
+
+* **Consulta 3 (`WHERE estado = 'Activo'`):** 
+  * Plan: `Seq Scan`
+  * Costo teórico: `0.00..1834.09`
+  * Tiempo real: `24.148 ms`
+  * **Análisis:** Recorrido completo para hallar coincidencias generales.
 
 ---
 
 ## 2. Cálculo de la Selectividad
 
-Aplicamos la fórmula analítica de selectividad requerida para evaluar de forma matemática en qué columnas es viable inyectar un índice y en cuáles es perjudicial:
-
-$$\text{Selectividad} = \frac{\text{Filas devueltas por el filtro}}{\text{Total de filas en la tabla}}$$
+Aplicamos la fórmula analítica (Selectividad = Filas devueltas / Total de filas) para evaluar matemáticamente la viabilidad de los índices:
 
 ### Caso Consulta 1 (Correo)
-* **Filas resultantes:** 1
-* **Filas totales:** 100,001
-$$\text{Selectividad} = \frac{1}{100001} \approx 0.00000999 \text{ (0.001\%)} $$
-* **Evaluación:** **Altamente Positiva**. La selectividad es muy inferior al umbral recomendado del 20%. Exige la inclusión de un índice de acceso directo.
+* **Cálculo:** 1 / 100,001 = 0.0000099
+* **Selectividad:** **~0.001%**
+* **Evaluación:** Altamente Positiva. La selectividad tiende a cero, lo que exige la inclusión de un índice de acceso directo.
 
 ### Caso Consulta 2 (Apellido y Estado)
-* En el script de inserción, los apellidos se repiten uniformemente en ciclos de 100. Al haber 100,000 registros, hay 1,000 filas por cada apellido. Cerca del 80% están activos.
-* **Filas resultantes:** ~800 filas.
-* **Filas totales:** 100,001.
-$$\text{Selectividad} = \frac{800}{100001} \approx 0.00799 \text{ (0.8\%)} $$
-* **Evaluación:** **Positiva**. Al representar menos del 1% del volumen total de datos, el uso de una clave de búsqueda secundaria evitará procesar más de 99,000 registros innecesarios.
+Los apellidos se repiten en ciclos de 100 (aprox. 1,000 filas por apellido) y el 80% están activos.
+* **Cálculo esperable:** 800 / 100,001 = 0.00799
+* **Selectividad:** **~0.8%**
+* **Evaluación:** Positiva. Al representar menos del 1% del volumen total, una clave de búsqueda evitará procesar más de 99,000 registros.
 
 ### Caso Consulta 3 (Estado)
-* Por diseño del algoritmo de inserción (`CASE WHEN i % 5 = 0 THEN 'Inactivo' ELSE 'Activo' END`), el **80% de la tabla** posee el estado 'Activo'.
-* **Filas resultantes:** ~80,000 filas.
-* **Filas totales:** 100,001.
-$$\text{Selectividad} = \frac{80000}{100001} \approx 0.80 \text{ (80\%)} $$
-* **Evaluación:** **Negativa**. Cuando la consulta recupera la gran mayoría de la tabla (80%), el optimizador prefiere ignorar los índices (debido al coste excesivo de paginación aleatoria por registros dispersos) y opta por leer la tabla secuencialmente de forma directa.
+Por el diseño del script (`i % 5 = 0`), el 80% de la tabla es 'Activo'.
+* **Cálculo:** 80,000 / 100,001 = 0.799
+* **Selectividad:** **~80%**
+* **Evaluación:** Negativa. Cuando se recupera la gran mayoría de la tabla, el costo de usar un índice es mayor que leer la tabla secuencialmente de forma directa.
 
 ---
 
 ## 3. Propuesta y Creación de Índices
 
-Atendiendo a las conclusiones analíticas de selectividad, se aplicó la siguiente arquitectura física de indexación:
-
-1. **Para Consulta 1:** Un **Índice Simple Único** por el campo de identidad unívoca (`correo`).
-2. **Para Consulta 2:** Un **Índice Compuesto** que asocie en primera posición `apellido` y en segunda instancia `estado`, cubriendo de forma óptima el filtro multinivel.
-3. **Para Consulta 3:** **Ninguno (Evaluación Negativa)**, ya que la creación de un índice sobre una columna de bajísima selectividad (baja variabilidad de estados en el negocio) desperdiciaría espacio de almacenamiento sin reportar beneficios.
+Atendiendo a las conclusiones analíticas, se aplicó la siguiente optimización:
 
 ```sql
--- 1. Optimización para la consulta de Correo
+-- 1. Índice Simple (Para la consulta de Correo - Altamente selectiva)
 CREATE UNIQUE INDEX idx_usuarios_correo ON usuarios (correo);
 
--- 2. Optimización para la consulta compuesta de Apellido y Estado
+-- 2. Índice Compuesto (Para la consulta de Apellido y Estado - Selectiva)
 CREATE INDEX idx_usuarios_apellido_estado ON usuarios (apellido, estado);
+
+-- 3. Para la consulta de Estado: Ninguno (Evaluación Negativa)
