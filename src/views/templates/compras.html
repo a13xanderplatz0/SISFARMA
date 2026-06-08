@@ -3,77 +3,467 @@
 {% block title %}Compras | SISFARMA{% endblock %}
 
 {% block content %}
-<div class="header-actions">
-    <h2>Órdenes de Compra a Proveedores</h2>
-    <button class="btn-primary" onclick="abrirModal('modalNuevaCompra')">+ Nueva Orden</button>
+
+<style>
+
+    .search-input 
+    { 
+        width: 100%; 
+        padding: 11px 14px; 
+        border: 1px solid #cbd5e1; 
+        border-radius: 8px; 
+        font-size: 0.95rem; 
+        background-color: #f8fafc; 
+        outline: none; 
+        transition: all 0.2s; 
+    }
+
+    .search-input:focus 
+    { 
+        border-color: #3b82f6; 
+        background-color: #ffffff; 
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+    }
+    
+    .table-container 
+    { 
+        max-height: 450px; 
+        overflow-y: auto; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 8px; 
+        margin-top: 15px; 
+    }
+
+    .table-container thead th 
+    { 
+        position: sticky; 
+        top: 0; 
+        background-color: #f1f5f9; 
+        z-index: 10; 
+        border-bottom: 2px solid #cbd5e1; 
+    }
+    
+    .cart-container 
+    { 
+        max-height: 350px; 
+        overflow-y: auto; 
+        padding-right: 5px; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px; 
+    }
+
+    .cart-item 
+    { 
+        background-color: #ffffff; 
+        border: 1px solid #e2e8f0; 
+        padding: 15px; 
+        border-radius: 8px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        position: relative; 
+    }
+
+    .cart-item-header 
+    { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 12px; 
+        padding-right: 20px; 
+    }
+
+    .cart-item-title 
+    { 
+        color: #1e293b; 
+        font-weight: 600; 
+        font-size: 0.95rem; 
+    }
+    
+    .btn-remove 
+    { 
+        position: absolute; 
+        top: 12px; 
+        right: 12px; 
+        background: none; 
+        border: none; 
+        color: #94a3b8; 
+        font-size: 1.4rem; 
+        cursor: pointer; 
+        transition: color 0.2s; 
+        padding: 0; 
+        line-height: 1; 
+    }
+
+    .btn-remove:hover 
+    { 
+        color: #ef4444; 
+    }
+    
+    .cart-item-body 
+    { 
+        display: grid; 
+        grid-template-columns: 1fr 1.2fr 1.2fr; 
+        gap: 10px; 
+        align-items: end; 
+    }
+
+    .cart-input-group label 
+    { 
+        display: block; 
+        font-size: 0.75rem; 
+        color: #64748b; 
+        margin-bottom: 4px; 
+        font-weight: 500; 
+    }
+
+    .cart-input-group input 
+    { 
+        width: 100%; 
+        padding: 8px; 
+        border: 1px solid #cbd5e1; 
+        border-radius: 4px; 
+        font-size: 0.9rem; 
+        outline: none; 
+        transition: border-color 0.2s; 
+    }
+
+    .cart-input-group input:focus 
+    { 
+        border-color: #3b82f6; 
+    }
+    
+    .cart-subtotal 
+    { 
+        text-align: right; 
+        padding-bottom: 5px; 
+    }
+
+    .cart-subtotal span 
+    { 
+        display: block; 
+        font-size: 0.75rem; 
+        color: #64748b; 
+        margin-bottom: 2px; 
+    }
+
+    .cart-subtotal strong 
+    { 
+        color: #0f172a; 
+        font-size: 1rem; 
+    }
+    
+    .total-banner 
+    { 
+        background-color: #ecfdf5; 
+        border: 1px solid #10b981; 
+        padding: 15px 20px; 
+        border-radius: 8px; 
+        color: #065f46; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 15px; 
+    }
+
+    .total-banner-text 
+    { 
+        font-size: 1rem; 
+        font-weight: 500; 
+    }
+
+    .total-banner-amount 
+    { 
+        font-size: 1.5rem; 
+        font-weight: 700; 
+    }
+    
+</style>
+
+<div class="tabs">
+    <button
+        class="tab-btn active"
+        onclick="mostrarTab(event, 'tab-nueva')"> Nueva Orden
+    </button>
+
+    <button
+        class="tab-btn"
+        onclick="mostrarTab(event, 'tab-historial')"> Historial de Compras
+    </button>
 </div>
 
-<table class="data-table">
-    <thead>
-        <tr>
-            <th>ID Orden</th>
-            <th>Fecha Solicitud</th>
-            <th>Proveedor</th>
-            <th>Generada por</th>
-            <th>Estado</th>
-            <th style="text-align: center;">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for compra in compras %}
-        <tr>
-            <td>#OC-{{ "%04d"|format(compra.id_compra) }}</td>
-            <td>{{ compra.fecha }}</td>
-            <td><strong>{{ compra.proveedor_nombre }}</strong></td>
-            <td>{{ compra.usuario_nombre }}</td>
-            
-            <td>
-                {% if compra.estado == 'recibida' %}
-                    <span class="tag" style="background: #e8f5e9; color: #2e7d32;">Recibida</span>
-                {% elif compra.estado == 'pendiente' %}
-                    <span class="tag" style="background: #fff8e1; color: #f57f17;">Pendiente</span>
-                {% else %}
-                    <span class="tag" style="background: #ffebee; color: #c62828;">Anulada</span>
-                {% endif %}
-            </td>
-            
-            <td>
-                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                    
-                    <button class="btn-secondary" style="white-space: nowrap; height: 34px; padding: 0 12px; display: flex; align-items: center;" onclick="abrirModalDetalle(
-                        '{{ compra.id_compra }}', 
-                        '{{ compra.proveedor_nombre }}', 
-                        '{{ compra.estado }}', 
-                        '{{ compra.fecha }}', 
-                        '{{ compra.medicamento_nombre if compra.medicamento_nombre is not none else 'No registrado' }}', 
-                        '{{ compra.cantidad if compra.cantidad is not none else '0' }}', 
-                        '{{ compra.total_compra if compra.total_compra is not none else '0.00' }}'
-                    )">Ver Items</button>
-                    
-                    {% if compra.estado == 'pendiente' %}
-                    <form action="/compras/recibir/{{ compra.id_compra }}" method="POST" style="margin: 0; padding: 0;">
-                        <button type="submit" class="btn-primary" style="background-color: #10b981; border: none; height: 34px; padding: 0 12px; display: flex; align-items: center; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap;" title="Marcar como recibida">
-                            ✓ Recibir
-                        </button>
-                    </form>
+<div 
+    id="tab-nueva" 
+    class="tab-content active-tab"
+>
 
-                    <form action="/compras/anular/{{ compra.id_compra }}" method="POST" style="margin: 0; padding: 0;">
-                        <button type="submit" class="btn-primary" style="background-color: #ef4444; border: none; height: 34px; padding: 0 12px; display: flex; align-items: center; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap;" title="Anular orden de compra">
-                            ✗ Anular
-                        </button>
-                    </form>
-                    {% endif %}
-                    
+    <div class="compras-layout">
+
+        <div class="compras-left">
+
+            <div class="card">
+                
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="buscarMedicamento" 
+                    placeholder=" Buscar medicamento..."
+                >
+                
+                <div class="table-container">
+
+                    <table 
+                        class="data-table" 
+                        style="margin: 0; width: 100%;"
+                    >
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Medicamento
+                                </th>
+
+                                <th style="text-align: center; width: 100px;">
+                                    Acción
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for med in medicamentos %}
+
+                            <tr>
+
+                                <td style="font-weight: 500;">
+                                    {{ med.nombre }}
+                                </td>
+
+                                <td style="text-align: center;">
+
+                                    <button 
+                                        type="button" 
+                                        class="btn-primary" 
+                                        style="padding: 6px 12px; font-size: 0.85rem; border-radius: 6px;" 
+                                        onclick="agregarMedicamento('{{ med.id_medicamento }}', '{{ med.nombre }}')"
+                                    >
+                                        Agregar +
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
                 </div>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="6" class="empty-state">No hay órdenes de compra registradas.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+            </div>
+
+        </div>
+
+        <div class="compras-right">
+
+            <div class="card">
+                
+                <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                    Nueva Orden
+                </h3>
+
+                <div 
+                    class="form-group" 
+                    style="margin-bottom: 20px;"
+                >
+
+                    <label style="font-weight: 600; font-size: 0.85rem; color: #475569;">
+                        Proveedor
+                    </label>
+
+                    <select 
+                        id="proveedor-compra" 
+                        class="search-input" 
+                        style="cursor: pointer; margin-top: 5px;"
+                    >
+
+                        <option value="">
+                            Seleccione proveedor
+                        </option>
+
+                        {% for prov in proveedores %}
+
+                        <option value="{{ prov.id_proveedor }}">
+                            {{ prov.nombre }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+
+                <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 0.95rem;">
+                    Detalle de Compra
+                </h4>
+
+                <div 
+                    id="carrito-compra" 
+                    class="cart-container"
+                >
+
+                    <div 
+                        class="empty-state" 
+                        style="padding: 20px 0; text-align: center; color: #94a3b8;"
+                    >
+                        No hay productos agregados.
+                    </div>
+
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+
+                <div class="total-banner">
+
+                    <span class="total-banner-text">
+                        Total Estimado:
+                    </span>
+
+                    <span class="total-banner-amount">
+                        S/ <span id="total-compra">0.00</span>
+                    </span>
+
+                </div>
+
+                <button 
+                    type="button" 
+                    class="btn-primary" 
+                    style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px;" 
+                    onclick="generarOrden()"
+                >
+                    Generar Orden de Compra
+                </button>
+
+                <form 
+                    id="formCompra" 
+                    method="POST" 
+                    action="/compras/nueva"
+                >
+
+                    <input 
+                        type="hidden" 
+                        name="id_proveedor" 
+                        id="inputProveedor"
+                    >
+
+                    <input 
+                        type="hidden" 
+                        name="fecha" 
+                        id="inputFecha"
+                    >
+
+                    <input 
+                        type="hidden" 
+                        name="detalle_compra" 
+                        id="inputDetalle"
+                    >
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="tab-historial" class="tab-content">
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID Orden</th>
+                <th>Fecha Solicitud</th>
+                <th>Proveedor</th>
+                <th>Generada por</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for compra in compras %}
+            <tr>
+                <td>#OC-{{ "%04d"|format(compra.id_compra) }}</td>
+                <td>{{ compra.fecha }}</td>
+                <td><strong>{{ compra.proveedor_nombre }}</strong></td>
+                <td>{{ compra.usuario_nombre }}</td>
+
+                <td>
+                    {% if compra.estado == "pendiente" %}
+                        <span class="badge badge-pendiente">
+                            Pendiente
+                        </span>
+
+                    {% elif compra.estado == "recibida" %}
+                        <span class="badge badge-recibida">
+                            Recibida
+                        </span>
+
+                    {% elif compra.estado == "anulada" %}
+                        <span class="badge badge-anulada">
+                            Anulada
+                        </span>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                        
+                        <button
+                            onclick="
+                                verDetalleCompra(
+                                    {{ compra.id_compra }}
+                                )
+                            ">
+                            Ver detalle
+                        </button>
+                        
+                        {% if compra.estado == "pendiente" %}
+
+                        <button
+                            class="btn-recibir"
+                            onclick="abrirModalRecepcion({{ compra.id_compra }})">
+
+                            Recibir
+                        </button>
+
+                        <form action="/compras/anular/{{ compra.id_compra }}" method="POST" style="margin: 0; padding: 0;">
+                            <button type="submit" class="btn-primary" style="background-color: #ef4444; border: none; height: 34px; padding: 0 12px; display: flex; align-items: center; color: white; border-radius: 4px; cursor: pointer; white-space: nowrap;" title="Anular orden de compra">
+                                ✗ Anular
+                            </button>
+                        </form>
+
+                        {% endif %} 
+                    </div>
+                </td>
+            {% else %}
+            <tr>
+                <td colspan="6" class="empty-state">No hay órdenes de compra registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
 
 <div id="modalNuevaCompra" class="modal-overlay">
     <div class="modal-content">
@@ -81,71 +471,6 @@
             <h3>Generar Orden de Compra</h3>
             <span class="close-btn" onclick="cerrarModal('modalNuevaCompra')">&times;</span>
         </div>
-        
-        <form action="/compras/nueva" method="POST">
-            <div class="form-group">
-                <label>Proveedor / Laboratorio</label>
-                <select name="id_proveedor" required>
-                    <option value="">Seleccione el proveedor...</option>
-                    {% for prov in proveedores %}
-                        <option value="{{ prov.id_proveedor }}">{{ prov.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Estado Inicial</label>
-                    <select name="estado" required>
-                        <option value="pendiente" selected>Pendiente (Por recibir)</option>
-                        <option value="recibida">Recibida (Ingreso directo)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Fecha de Pedido</label>
-                    <input type="date" name="fecha" required>
-                </div>
-            </div>
-
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-            
-            <div class="form-group">
-                <label>Medicamento a Comprar</label>
-                <select name="id_medicamento" required>
-                    <option value="">Seleccione el medicamento...</option>
-                    {% for med in medicamentos %}
-                        <option value="{{ med.id_medicamento }}">{{ med.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Cantidad (Cajas/Unidades)</label>
-                    <input type="number" name="cantidad" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label style="white-space: nowrap;">Precio Unitario (S/)</label>
-                    <input type="number" step="0.01" name="precio_compra" placeholder="Ej. 15.50" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Número de Lote</label>
-                    <input type="text" name="numero_lote" placeholder="Ej. LOTE-2024" required>
-                </div>
-                <div class="form-group">
-                    <label>Fecha de Vencimiento</label>
-                    <input type="date" name="fecha_vencimiento" required>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="cerrarModal('modalNuevaCompra')">Cancelar</button>
-                <button type="submit" class="btn-primary">Generar Orden</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -163,16 +488,56 @@
             <p style="margin-bottom: 8px;"><strong>Estado:</strong> <span id="det-est" style="text-transform: capitalize; font-weight:bold; color: #0f172a;"></span></p>
         </div>
 
-        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; margin: 15px 0;">
-            <h4 style="margin-top: 0; margin-bottom: 10px; color: #334155;">Información del Producto</h4>
-            <p style="margin-bottom: 5px;"><strong>Medicamento:</strong> <span id="det-med"></span></p>
-            <p style="margin-bottom: 5px;"><strong>Cantidad:</strong> <span id="det-cant"></span> un.</p>
-            <p style="margin-bottom: 0;"><strong>Total Compra:</strong> S/ <span id="det-total"></span></p>
-        </div>
         
         <div class="modal-footer" style="margin-top: 20px;">
             <button class="btn-secondary" onclick="cerrarModal('modalDetalleCompra')" style="width: 100%;">Cerrar</button>
         </div>
+    </div>
+</div>
+
+<div id="modalRecepcion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; font-family: system-ui, -apple-system, sans-serif;">
+    
+    <div style="background-color: #ffffff; padding: 0; border-radius: 12px; width: 95%; max-width: 550px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">
+        
+        <div style="background-color: #f8fafc; padding: 20px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; color: #1e293b; font-size: 1.25rem; font-weight: 600;">📦 Recepción de Compra</h2>
+            <button type="button" onclick="cerrarModalRecepcion()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">
+                &times;
+            </button>
+        </div>
+
+        <form id="formRecepcion" method="POST" style="margin: 0; display: flex; flex-direction: column; max-height: 80vh;">
+            
+            <div id="recepcion-body" style="padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+                </div>
+
+            <div style="padding: 15px 25px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="cerrarModalRecepcion()" style="background-color: #e2e8f0; color: #475569; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.95rem;">
+                    Cancelar
+                </button>
+                <button type="submit" style="background-color: #3b82f6; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);">
+                    ✓ Guardar Recepción
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="modalDetalle" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; font-family: system-ui, -apple-system, sans-serif;">
+    
+    <div style="background-color: #ffffff; padding: 0; border-radius: 12px; width: 95%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column;">
+        
+        <div style="background-color: #f8fafc; padding: 20px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; color: #1e293b; font-size: 1.25rem; font-weight: 600;">🧾 Detalle de la Orden</h2>
+            <button onclick="cerrarModalDetalle()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">
+                &times;
+            </button>
+        </div>
+
+        <div id="detalle-compra-body" style="padding: 25px; max-height: 60vh; overflow-y: auto;">
+            </div>
+
     </div>
 </div>
 
@@ -197,5 +562,321 @@
         
         document.getElementById('modalDetalleCompra').style.display = 'flex'; 
     }
+
+    async function abrirModalRecepcion(idCompra) {
+        // Obtenemos los detalles de la compra para saber qué medicamentos recibiremos
+        const respuesta = await fetch("/compras/detalle/" + idCompra);
+        const detalle = await respuesta.json();
+
+        let html = `<input type="hidden" name="cantidad_items" value="${detalle.length}">`;
+
+        detalle.forEach((item, index) => {
+            html += `
+                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; padding: 18px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    
+                    <h4 style="margin: 0 0 15px 0; color: #0f172a; font-size: 1.05rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+                        💊 ${item.nombre} <span style="color: #64748b; font-size: 0.9rem; font-weight: normal;">(Cant. esperada: ${item.cantidad})</span>
+                    </h4>
+
+                    <input type="hidden" name="id_medicamento_${index}" value="${item.id_medicamento}">
+
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; color: #475569; margin-bottom: 6px; font-weight: 500;">Número de Lote:</label>
+                            <input type="text" name="numero_lote_${index}" required placeholder="Ej. LOTE-001" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; outline: none;">
+                        </div>
+
+                        <div style="display: flex; gap: 15px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 0.85rem; color: #475569; margin-bottom: 6px; font-weight: 500;">F. Vencimiento:</label>
+                                <input type="date" name="fecha_vencimiento_${index}" required style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; outline: none; color: #334155;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 0.85rem; color: #475569; margin-bottom: 6px; font-weight: 500;">Stock Mínimo:</label>
+                                <input type="number" name="stock_minimo_${index}" value="10" required min="1" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; outline: none; color: #334155;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Inyectamos el HTML, seteamos la ruta del formulario y mostramos el modal
+        document.getElementById("recepcion-body").innerHTML = html;
+        document.getElementById("formRecepcion").action = "/compras/recibir/" + idCompra;
+        document.getElementById("modalRecepcion").style.display = "flex";
+    }
+
+    function mostrarTab(event, tabId)
+    {
+        const tabs =
+            document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab =>
+        {
+            tab.classList.remove('active-tab');
+        });
+
+        document
+            .getElementById(tabId)
+            .classList.add('active-tab');
+
+        const botones =
+            document.querySelectorAll('.tab-btn');
+
+        botones.forEach(btn =>
+        {
+            btn.classList.remove('active');
+        });
+
+        event.currentTarget.classList.add('active');
+    }
+    let carritoCompra = [];
+
+    function agregarMedicamento(id, nombre)
+    {
+        const existente =
+            carritoCompra.find(
+                item => item.id == id
+            );
+
+        if(existente)
+        {
+            existente.cantidad++;
+        }
+        else
+        {
+            carritoCompra.push({
+                id:id,
+                nombre:nombre,
+                cantidad:1,
+                precio:0
+            });
+        }
+
+        renderizarCarrito();
+    }
+
+    document.getElementById('buscarMedicamento').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        const filas = document.querySelectorAll('#tab-nueva .data-table tbody tr');
+        
+        filas.forEach(row => {
+            const nombreMedicamento = row.querySelector('td').innerText.toLowerCase();
+            row.style.display = nombreMedicamento.includes(query) ? '' : 'none';
+        });
+    });
+
+    function renderizarCarrito() {
+        const contenedor = document.getElementById("carrito-compra");
+        
+        if (carritoCompra.length === 0) {
+            contenedor.innerHTML = `<div class="empty-state" style="padding: 20px 0; text-align: center; color: #94a3b8;">No hay productos agregados.</div>`;
+            actualizarTotal();
+            return;
+        }
+
+        let html = "";
+        carritoCompra.forEach(item => {
+            html += `
+                <div class="cart-item">
+                    <button type="button" class="btn-remove" onclick="eliminarMedicamento(${item.id})" title="Quitar item">&times;</button>
+                    
+                    <div class="cart-item-header">
+                        <span class="cart-item-title">💊 ${item.nombre}</span>
+                    </div>
+
+                    <div class="cart-item-body">
+                        <div class="cart-input-group">
+                            <label>Cantidad:</label>
+                            <input type="number" min="1" value="${item.cantidad}" onchange="actualizarCantidad(${item.id}, this.value)">
+                        </div>
+                        
+                        <div class="cart-input-group">
+                            <label>P. Compra (S/):</label>
+                            <input type="number" step="0.01" min="0" value="${item.precio}" onchange="actualizarPrecio(${item.id}, this.value)">
+                        </div>
+                        
+                        <div class="cart-subtotal">
+                            <span>Subtotal:</span>
+                            <strong>S/ ${(item.cantidad * item.precio).toFixed(2)}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+        actualizarTotal();
+    }
+
+    function actualizarCantidad(id, cantidad)
+    {
+        const item =
+            carritoCompra.find(
+                p => p.id == id
+            );
+
+        item.cantidad =
+            parseInt(cantidad);
+
+        renderizarCarrito();
+    }
+
+    function actualizarPrecio(id, precio)
+    {
+        const item =
+            carritoCompra.find(
+                p => p.id == id
+            );
+
+        item.precio =
+            parseFloat(precio);
+
+        renderizarCarrito();
+    }
+
+    function eliminarMedicamento(id)
+    {
+        carritoCompra =
+            carritoCompra.filter(
+                item => item.id != id
+            );
+
+        renderizarCarrito();
+    }
+
+    function actualizarTotal()
+    {
+        let total = 0;
+
+        carritoCompra.forEach(item =>
+        {
+            total +=
+                item.cantidad *
+                item.precio;
+        });
+
+        document
+            .getElementById(
+                "total-compra"
+            )
+            .innerText =
+            total.toFixed(2);
+    }
+
+    function generarOrden()
+    {
+        if(carritoCompra.length === 0)
+        {
+            alert(
+                "Agregue al menos un medicamento."
+            );
+            return;
+        }
+
+        const proveedor =
+            document.getElementById(
+                "proveedor-compra"
+            ).value;
+
+        if(!proveedor)
+        {
+            alert(
+                "Seleccione un proveedor."
+            );
+            return;
+        }
+
+        const fecha =
+            new Date()
+                .toISOString()
+                .split('T')[0];
+
+        document.getElementById(
+            "inputProveedor"
+        ).value = proveedor;
+
+        document.getElementById(
+            "inputFecha"
+        ).value = fecha;
+
+        document.getElementById(
+            "inputDetalle"
+        ).value =
+            JSON.stringify(
+                carritoCompra
+            );
+
+        document
+            .getElementById(
+                "formCompra"
+            )
+            .submit();
+    }
+
+    async function verDetalleCompra(idCompra)
+    {
+        const respuesta =
+            await fetch(
+                "/compras/detalle/" +
+                idCompra
+            );
+
+        const detalle =
+            await respuesta.json();
+
+        let total = 0;
+
+        let html = `
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background-color: #f1f5f9; text-align: left; color: #475569;">
+                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; border-top-left-radius: 8px;">Medicamento</th>
+                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: center;">Cantidad</th>
+                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: right;">Precio</th>
+                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: right; border-top-right-radius: 8px;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        detalle.forEach(item => {
+            total += Number(item.subtotal);
+
+            html += `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 12px 15px; color: #334155; font-weight: 500;">${item.nombre}</td>
+                    <td style="padding: 12px 15px; text-align: center; color: #64748b;">${item.cantidad}</td>
+                    <td style="padding: 12px 15px; text-align: right; color: #64748b;">S/ ${Number(item.precio).toFixed(2)}</td>
+                    <td style="padding: 12px 15px; text-align: right; color: #0f172a; font-weight: 600;">S/ ${Number(item.subtotal).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 25px;">
+                <div style="background-color: #ecfdf5; border: 1px solid #10b981; padding: 15px 25px; border-radius: 8px; color: #065f46; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);">
+                    <span style="font-size: 1rem; margin-right: 15px; font-weight: 500;">Total a Pagar:</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">S/ ${total.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("detalle-compra-body").innerHTML = html;
+        document.getElementById("modalDetalle").style.display = "flex";
+    }
+
+    function cerrarModalDetalle() {
+    document.getElementById("modalDetalle").style.display = "none";
+    }
+
+    function cerrarModalRecepcion() {
+        document.getElementById("modalRecepcion").style.display = "none";
+    }
+    
 </script>
 {% endblock %}
