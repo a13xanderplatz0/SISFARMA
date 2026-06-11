@@ -10,7 +10,6 @@ def listar_proveedores():
     return execute_query(query, fetch_all=True)
 
 def crear_proveedor(form):
-    # Recibe los datos del formulario web, limpia espacios y los inserta
     nombre = form.get('nombre', '').strip()
     telefono = form.get('telefono', '').strip()
     direccion = form.get('direccion', '').strip()
