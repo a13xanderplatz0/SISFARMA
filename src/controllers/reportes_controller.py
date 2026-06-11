@@ -88,7 +88,7 @@ def query_inventario():
                 ELSE 'OK'
             END AS estado
         FROM INVENTARIO i
-        JOIN MEDICAMENTO m ON i.id_medicamento = m.id_medicamento
+        JOIN MEDICAMENTO m ON i.id_medicamento = m.id_medicamento AND m.activo = 1
         JOIN CATEGORIA cat ON m.id_categoria = cat.id_categoria
         JOIN LOTE l ON i.numero_lote = l.numero_lote AND i.id_medicamento = l.id_medicamento
         ORDER BY estado DESC, m.nombre
@@ -102,6 +102,7 @@ def query_inventario():
             SUM(CASE WHEN i.stock <= i.stock_minimo THEN 1 ELSE 0 END) AS con_stock_bajo,
             SUM(CASE WHEN l.fecha_vencimiento <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 ELSE 0 END) AS proximos_vencer
         FROM INVENTARIO i
+        JOIN MEDICAMENTO m ON i.id_medicamento = m.id_medicamento AND m.activo = 1
         JOIN LOTE l ON i.numero_lote = l.numero_lote AND i.id_medicamento = l.id_medicamento
     """)
     resumen = cursor.fetchone()

@@ -29,11 +29,9 @@
             <td><span class="tag">{{ medicamento.categoria_nombre }}</span></td>
             <td>S/ {{ "%.2f"|format(medicamento.precio) }}</td>
             <td>
-            <a href="{{ url_for('medicamentos.editar', id_medicamento=medicamento.id_medicamento) }}" class="btn-edit">Editar</a>
-            <form action="/medicamentos/eliminar/{{ medicamento.id_medicamento }}" method="POST" style="display:inline; margin:0;">
-                <button type="submit" class="btn-delete">Eliminar</button>
-            </form>
-        </td>
+                <a href="{{ url_for('medicamentos.editar', id_medicamento=medicamento.id_medicamento) }}" class="btn-edit">Editar</a>
+                <button type="button" class="btn-delete" onclick="confirmarEliminar({{ medicamento.id_medicamento }}, '{{ medicamento.nombre }}')">Eliminar</button>
+            </td>
         </tr>
         {% else %}
         <tr>
@@ -43,7 +41,7 @@
     </tbody>
 </table>
 
-<!-- VENTANA MODAL (Oculta por defecto) -->
+<!-- Modal nuevo medicamento -->
 <div id="modalNuevoMedicamento" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
@@ -82,7 +80,23 @@
     </div>
 </div>
 
-<!-- Lógica JavaScript para las ventanas -->
+<!-- Modal confirmación eliminar -->
+<div id="modalConfirmarEliminar" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirmar eliminación</h3>
+            <span class="close-btn" onclick="cerrarModal('modalConfirmarEliminar')">&times;</span>
+        </div>
+        <p style="margin: 16px 0;">¿Estás seguro que deseas dar de baja a <strong id="nombreMedicamento"></strong>? Esta acción no se puede deshacer.</p>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="cerrarModal('modalConfirmarEliminar')">Cancelar</button>
+            <form id="formEliminar" method="POST" style="display:inline;">
+                <button type="submit" class="btn-delete">Sí, eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     function abrirModal(idModal) {
         document.getElementById(idModal).style.display = 'flex';
@@ -92,7 +106,12 @@
         document.getElementById(idModal).style.display = 'none';
     }
 
-    // Cerrar modal al hacer clic fuera del cuadro
+    function confirmarEliminar(id, nombre) {
+        document.getElementById('nombreMedicamento').textContent = nombre;
+        document.getElementById('formEliminar').action = '/medicamentos/eliminar/' + id;
+        abrirModal('modalConfirmarEliminar');
+    }
+
     window.onclick = function(event) {
         const modals = document.getElementsByClassName('modal-overlay');
         for (let i = 0; i < modals.length; i++) {

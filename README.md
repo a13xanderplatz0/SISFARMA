@@ -132,3 +132,71 @@ python app.py
 - El usuario y la contraseña en `.env` deben ser válidos para el servidor.
 - Si MySQL usa `caching_sha2_password`, dejar `MYSQL_AUTH_PLUGIN=caching_sha2_password`.
 - Si usan otro plugin, ajustar `MYSQL_AUTH_PLUGIN` en `.env`.
+
+
+# Reporte Comparativo de Optimización de Rendimiento
+**Laboratorio:** El Desafío de Rendimiento
+
+Este documento contiene el análisis técnico del comportamiento de tres consultas sobre un dataset de 100,001 registros generados en PostgreSQL.
+
+---
+
+## 1. Ejecución Inicial (Sin Modificaciones)
+
+Se evaluó el estado inicial de la base de datos obteniendo los siguientes planes de ejecución mediante `EXPLAIN ANALYZE`:
+
+* **Consulta 1 (`WHERE correo = 'carlos.mendoza@api.com'`):** 
+  * Plan: `Seq Scan` (Sequential Scan)
+  * Costo teórico: `0.00..1834.09`
+  * Tiempo real: `19.411 ms`
+  * **Análisis:** Obliga al motor a examinar linealmente las 100,001 filas.
+
+* **Consulta 2 (`WHERE apellido = 'Apellido_45' AND estado = 'Activo'`):** 
+  * Plan: `Seq Scan`
+  * Costo teórico: `0.00..1954.30`
+  * Tiempo real: `19.067 ms`
+  * **Análisis:** Al no existir estructuras secundarias, evalúa toda la tabla.
+
+* **Consulta 3 (`WHERE estado = 'Activo'`):** 
+  * Plan: `Seq Scan`
+  * Costo teórico: `0.00..1834.09`
+  * Tiempo real: `24.148 ms`
+  * **Análisis:** Recorrido completo para hallar coincidencias generales.
+
+---
+
+## 2. Cálculo de la Selectividad
+
+Aplicamos la fórmula analítica (Selectividad = Filas devueltas / Total de filas) para evaluar matemáticamente la viabilidad de los índices:
+
+### Caso Consulta 1 (Correo)
+* **Cálculo:** 1 / 100,001 = 0.0000099
+* **Selectividad:** **~0.001%**
+* **Evaluación:** Altamente Positiva. La selectividad tiende a cero, lo que exige la inclusión de un índice de acceso directo.
+
+### Caso Consulta 2 (Apellido y Estado)
+Los apellidos se repiten en ciclos de 100 (aprox. 1,000 filas por apellido) y el 80% están activos.
+* **Cálculo esperable:** 800 / 100,001 = 0.00799
+* **Selectividad:** **~0.8%**
+* **Evaluación:** Positiva. Al representar menos del 1% del volumen total, una clave de búsqueda evitará procesar más de 99,000 registros.
+
+### Caso Consulta 3 (Estado)
+Por el diseño del script (`i % 5 = 0`), el 80% de la tabla es 'Activo'.
+* **Cálculo:** 80,000 / 100,001 = 0.799
+* **Selectividad:** **~80%**
+* **Evaluación:** Negativa. Cuando se recupera la gran mayoría de la tabla, el costo de usar un índice es mayor que leer la tabla secuencialmente de forma directa.
+
+---
+
+## 3. Propuesta y Creación de Índices
+
+Atendiendo a las conclusiones analíticas, se aplicó la siguiente optimización:
+
+```sql
+-- 1. Índice Simple (Para la consulta de Correo - Altamente selectiva)
+CREATE UNIQUE INDEX idx_usuarios_correo ON usuarios (correo);
+
+-- 2. Índice Compuesto (Para la consulta de Apellido y Estado - Selectiva)
+CREATE INDEX idx_usuarios_apellido_estado ON usuarios (apellido, estado);
+
+-- 3. Para la consulta de Estado: Ninguno (Evaluación Negativa)

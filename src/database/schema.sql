@@ -1,5 +1,3 @@
-
-
 CREATE TABLE CATEGORIA (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL
@@ -9,7 +7,8 @@ CREATE TABLE PROVEEDOR (
     id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
     telefono VARCHAR(20),
-    direccion VARCHAR(255)
+    direccion VARCHAR(255),
+    activo BOOLEAN NOT NULL DEFAULT TRUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE CLIENTE (
@@ -34,6 +33,7 @@ CREATE TABLE MEDICAMENTO (
     nombre VARCHAR(150) NOT NULL,
     precio DECIMAL(10,2) NOT NULL,
     descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     id_categoria INT NOT NULL,
     CONSTRAINT fk_medicamento_categoria
         FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria) ON DELETE RESTRICT

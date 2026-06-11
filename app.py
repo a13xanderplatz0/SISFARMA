@@ -7,12 +7,9 @@ from src.routes.ventas import ventas_bp
 from src.routes.compras import compras_bp
 from src.routes.usuarios import usuarios_bp
 from src.routes.proveedores import proveedores_bp
-from src.routes.compras import compras_bp
-from src.routes.usuarios import usuarios_bp
+from src.routes.inventario import inventario_bp
 from src.routes.auth import auth_bp   
 
-from src.controllers.medicamentos_controller import listar
-from src.controllers.compras_controller import listar_inventario_real, actualizar_stock_inventario
 from src.controllers.reportes_controller import reportes_bp
 
 
@@ -30,6 +27,7 @@ app.register_blueprint(compras_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(reportes_bp)
 app.register_blueprint(proveedores_bp)
+app.register_blueprint(inventario_bp)
 app.register_blueprint(auth_bp)
 
 @app.context_processor
@@ -56,39 +54,6 @@ CLIENTES_DB = [
     {"id_cliente": 5, "nombre": "Lucía Fernández"},
 ]
 
-
-
-
-
-
-@app.route('/inventario')
-def inventario():
-    
-    if 'id_usuario' not in session:
-        return redirect('/login')
-
-    
-    inventario_db = listar_inventario_real()
-
-    return render_template(
-        'inventario.html',
-        inventario=inventario_db,
-    )
-
-
-@app.route('/inventario/ingreso', methods=['POST'])
-def inventario_ingreso():
-    
-    if session.get('rol') != 'Administrador':
-        return "Acceso denegado. Solo administradores pueden ingresar stock.", 403
-
-    id_inventario = request.form['id_inventario']
-    cantidad = request.form['cantidad_ingreso']
-    motivo = request.form['motivo']
-
-    print(f"Ingreso inventario #{id_inventario}: +{cantidad} ({motivo})")
-
-    return redirect('/inventario')
 
 if __name__ == '__main__':
     app.run(debug=True)

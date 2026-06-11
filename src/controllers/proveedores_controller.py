@@ -1,8 +1,12 @@
 from src.database.connection import execute_query
 
 def listar_proveedores():
-    # Trae todos los proveedores reales de la base de datos
-    query = "SELECT id_proveedor, nombre, telefono, direccion FROM PROVEEDOR ORDER BY id_proveedor DESC"
+    query = """
+        SELECT id_proveedor, nombre, telefono, direccion
+        FROM PROVEEDOR
+        WHERE activo = TRUE
+        ORDER BY id_proveedor DESC
+    """
     return execute_query(query, fetch_all=True)
 
 def crear_proveedor(form):
@@ -25,6 +29,10 @@ def actualizar_proveedor(id_proveedor, form):
     return True
 
 def eliminar_proveedor(id_proveedor):
-    query = "DELETE FROM PROVEEDOR WHERE id_proveedor = %s"
+    query = """
+        UPDATE PROVEEDOR
+        SET activo = FALSE
+        WHERE id_proveedor = %s
+    """
     execute_query(query, (id_proveedor,))
     return True

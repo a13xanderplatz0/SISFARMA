@@ -14,6 +14,7 @@ def listar():
         FROM MEDICAMENTO m
         JOIN CATEGORIA c ON m.id_categoria = c.id_categoria
         LEFT JOIN INVENTARIO i ON m.id_medicamento = i.id_medicamento
+        WHERE m.activo = 1
         GROUP BY m.id_medicamento, m.nombre, m.precio, m.descripcion, m.id_categoria, c.nombre
         ORDER BY m.id_medicamento
     """
@@ -69,6 +70,6 @@ def actualizar(id_medicamento, form):
 
 
 def eliminar(id_medicamento):
-    delete_query = "DELETE FROM MEDICAMENTO WHERE id_medicamento = %s"
-    execute_query(delete_query, (id_medicamento,))
+    update_query = "UPDATE MEDICAMENTO SET activo = 0 WHERE id_medicamento = %s"
+    execute_query(update_query, (id_medicamento,))
     return True
