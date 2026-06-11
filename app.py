@@ -11,6 +11,7 @@ from src.routes.inventario import inventario_bp
 from src.routes.auth import auth_bp   
 
 from src.controllers.reportes_controller import reportes_bp
+from src.database.setup import init_database
 
 
 app = Flask(
@@ -56,4 +57,5 @@ CLIENTES_DB = [
 
 
 if __name__ == '__main__':
+    init_database()
     app.run(debug=True)
