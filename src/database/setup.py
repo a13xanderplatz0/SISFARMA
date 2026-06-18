@@ -64,7 +64,9 @@ def init_database():
     if not schema_path.exists():
         raise FileNotFoundError(f'Missing schema file: {schema_path}')
 
-    db_name = os.getenv('MYSQL_DATABASE', 'sisfarma')
+    # Soporta variables Railway (MYSQLDATABASE) y variables simples (MYSQL_DATABASE)
+    db_name = os.getenv('MYSQLDATABASE') or os.getenv('MYSQL_DATABASE') or 'sisfarma'
+
     server_connection = get_server_connection()
     try:
         server_cursor = server_connection.cursor()

@@ -1,33 +1,92 @@
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 
+# ---------------------------------------------------------------------------
+# Determine which database to connect to: 'local' or 'online'
+# Priority:
+#   1. Command-line argument: 'local' / '--local'  or  'online' / '--online'
+#   2. Running inside Railway (MYSQLHOST is injected by the platform) → online
+#   3. Default to 'online' (use .env)
+# ---------------------------------------------------------------------------
+
+_args = [a.lower().lstrip('-') for a in sys.argv[1:]]
+
+if 'local' in _args:
+    DB_MODE = 'local'
+elif 'online' in _args:
+    DB_MODE = 'online'
+elif os.getenv('MYSQLHOST'):          # injected by Railway in production
+    DB_MODE = 'online'
+else:
+    DB_MODE = 'online'                # default
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-dotenv_path = BASE_DIR / '.env'
-load_dotenv(dotenv_path)
 
-if not dotenv_path.exists():
-    raise FileNotFoundError(f"Missing .env file at {dotenv_path}")
+if DB_MODE == 'local':
+    env_file = BASE_DIR / '.env.example'
+    load_dotenv(env_file, override=True)
+else:
+    env_file = BASE_DIR / '.env'
+    if env_file.exists():
+        load_dotenv(env_file, override=True)
 
+# Read resolved values for display
+_db_host = os.getenv('MYSQLHOST') or os.getenv('MYSQL_HOST', 'localhost')
+_db_port = os.getenv('MYSQLPORT') or os.getenv('MYSQL_PORT', '3306')
+_db_name = os.getenv('MYSQLDATABASE') or os.getenv('MYSQL_DATABASE', 'sisfarma')
+
+_separator = '-' * 55
+if DB_MODE == 'local':
+    print(f"\n{_separator}")
+    print(f"  [DB MODE] >>> LOCAL database (desde .env.example)")
+    print(f"  Host    : {_db_host}")
+    print(f"  Port    : {_db_port}")
+    print(f"  Database: {_db_name}")
+    print(f"{_separator}\n")
+else:
+    print(f"\n{_separator}")
+    print(f"  [DB MODE] >>> ONLINE database (Railway Cloud)")
+    print(f"  Host    : {_db_host}")
+    print(f"  Port    : {_db_port}")
+    print(f"  Database: {_db_name}")
+    print(f"{_separator}\n")
+
+
+# ---------------------------------------------------------------------------
+# Connection helpers
+# ---------------------------------------------------------------------------
 
 def _build_connection_config(include_database=True) -> dict:
+    # Soporta tanto variables Railway (MYSQLHOST, etc.) como variables simples (MYSQL_HOST, etc.)
+    host     = os.getenv('MYSQLHOST') or os.getenv('MYSQL_HOST', 'localhost')
+    port_raw = os.getenv('MYSQLPORT') or os.getenv('MYSQL_PORT')
+    user     = os.getenv('MYSQLUSER') or os.getenv('MYSQL_USER', 'root')
+    password = os.getenv('MYSQLPASSWORD') or os.getenv('MYSQL_PASSWORD', '')
+    database = os.getenv('MYSQLDATABASE') or os.getenv('MYSQL_DATABASE', 'sisfarma')
+
     config = {
-        'host': os.getenv('MYSQL_HOST', 'localhost'),
-        'port': int(os.getenv('MYSQL_PORT', 3306)),
-        'user': os.getenv('MYSQL_USER', 'root'),
-        'password': os.getenv('MYSQL_PASSWORD', ''),
+        'host':     host,
+        'port':     int(port_raw) if port_raw else 3306,
+        'user':     user,
+        'password': password,
     }
     if include_database:
-        config['database'] = os.getenv('MYSQL_DATABASE', 'sisfarma')
+        config['database'] = database
     return config
 
 
 def _connect_with_plugin_config(config: dict):
     supplied_plugin = os.getenv('MYSQL_AUTH_PLUGIN')
-    auth_plugins = [supplied_plugin] if supplied_plugin else [None, 'mysql_native_password', 'caching_sha2_password']
+    auth_plugins = (
+        [supplied_plugin]
+        if supplied_plugin
+        else [None, 'mysql_native_password', 'caching_sha2_password']
+    )
 
     last_error = None
     for plugin in auth_plugins:

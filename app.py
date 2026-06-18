@@ -8,7 +8,7 @@ from src.routes.compras import compras_bp
 from src.routes.usuarios import usuarios_bp
 from src.routes.proveedores import proveedores_bp
 from src.routes.inventario import inventario_bp
-from src.routes.auth import auth_bp   
+from src.routes.auth import auth_bp
 
 from src.controllers.reportes_controller import reportes_bp
 from src.database.setup import init_database
@@ -31,21 +31,20 @@ app.register_blueprint(proveedores_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(auth_bp)
 
+
 @app.context_processor
 def inyectar_usuario():
-    
     if 'id_usuario' in session:
         return {"current_user": {"nombre": session['nombre'], "rol": session['rol']}}
-    
-    
     return {"current_user": None}
+
 
 @app.route('/')
 def inicio():
-    
     if 'id_usuario' not in session:
         return redirect('/login')
     return redirect('/medicamentos')
+
 
 CLIENTES_DB = [
     {"id_cliente": 1, "nombre": "Ana López"},
@@ -58,4 +57,7 @@ CLIENTES_DB = [
 
 if __name__ == '__main__':
     init_database()
-    app.run(debug=True)
+    port = int(os.getenv('PORT', 5050))
+    host = os.getenv('HOST', '0.0.0.0')
+    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    app.run(host=host, port=port, debug=debug)
