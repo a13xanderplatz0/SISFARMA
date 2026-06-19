@@ -51,7 +51,7 @@ def verificar():
 
         print(f"  Venta MySQL #{ id_v }  |  Estado: {estado}")
         print(f"    Fecha     : {fecha}")
-        print(f"    Cliente   : {cliente.get('nombre')}  |  Tel: {cliente.get('telefono')}")
+        print(f"    Cliente   : {cliente.get('nombre')} (DNI: {cliente.get('dni', 'No registrado')})  |  Tel: {cliente.get('telefono')}")
         print(f"    Cajero    : {cajero.get('nombre')}   Rol: {cajero.get('rol')}")
         print(f"    Pago      : {pago.get('metodo')}  Total: S/ {pago.get('monto_total')}")
         print(f"    Canal     : {metadata.get('canal', '?')}")

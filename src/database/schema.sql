@@ -14,6 +14,7 @@ CREATE TABLE PROVEEDOR (
 CREATE TABLE CLIENTE (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
+    dni VARCHAR(8) UNIQUE,
     telefono VARCHAR(20),
     direccion VARCHAR(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -197,12 +198,12 @@ INSERT INTO INVENTARIO (stock, stock_minimo, numero_lote, id_medicamento) VALUES
 (120, 25, 'LOT004', 4),
 (40, 10, 'LOT005', 5);
 
-INSERT INTO CLIENTE (nombre, telefono, direccion) VALUES
-('Ana López', '922334455', 'Av. Larco 456, Apt 301'),
-('Pedro Infante', '933445566', 'Calle San Martín 789'),
-('Sofía Castro', '944556677', 'Urb. El Sol Mza F Lote 12'),
-('Diego Mendoza', '955667788', 'Av. Ejército 1010'),
-('Lucía Fernández', '966778899', 'Pasaje Las Flores 14');
+INSERT INTO CLIENTE (nombre, dni, telefono, direccion) VALUES
+('Ana López', '11111111', '922334455', 'Av. Larco 456, Apt 301'),
+('Pedro Infante', '22222222', '933445566', 'Calle San Martín 789'),
+('Sofía Castro', '33333333', '944556677', 'Urb. El Sol Mza F Lote 12'),
+('Diego Mendoza', '44444444', '955667788', 'Av. Ejército 1010'),
+('Lucía Fernández', '55555555', '966778899', 'Pasaje Las Flores 14');
 
 
 INSERT INTO VENTA (fecha, total, id_cliente, id_usuario) VALUES

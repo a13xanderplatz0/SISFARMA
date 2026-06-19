@@ -102,6 +102,7 @@ def init_database():
         connection.commit()
         _ensure_column(connection, 'MEDICAMENTO', 'activo', 'activo BOOLEAN NOT NULL DEFAULT TRUE')
         _ensure_column(connection, 'PROVEEDOR', 'activo', 'activo BOOLEAN NOT NULL DEFAULT TRUE')
+        _ensure_column(connection, 'CLIENTE', 'dni', 'dni VARCHAR(8) UNIQUE')
     finally:
         cursor.close()
         if connection.is_connected():

@@ -9,6 +9,7 @@ from src.controllers.ventas_controller import (
     obtener_detalle_venta,
     anular_venta,
     crear_cliente_rapido,
+    buscar_cliente_por_dni,
     obtener_reporte_rendimiento
 )
 
@@ -72,22 +73,48 @@ def anular(id_venta):
         # Podriamos pasar un mensaje flash de error
         return redirect(url_for("ventas.index"))
 
+@ventas_bp.route("/clientes/buscar/<dni>", methods=["GET"])
+def buscar_cliente(dni):
+    try:
+        dni_clean = dni.strip()
+        if not dni_clean.isdigit() or len(dni_clean) != 8:
+            return jsonify({"success": False, "message": "El DNI debe tener exactamente 8 dígitos numéricos"}), 400
+            
+        cliente = buscar_cliente_por_dni(dni_clean)
+        if cliente:
+            return jsonify({"success": True, "cliente": cliente})
+        else:
+            return jsonify({"success": False, "message": "Cliente no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @ventas_bp.route("/clientes/rapido", methods=["POST"])
 def cliente_rapido():
     try:
         data = request.get_json()
         nombre = data.get("nombre", "").strip()
+        dni = data.get("dni", "").strip()
         telefono = data.get("telefono", "").strip()
         direccion = data.get("direccion", "").strip()
         
         if not nombre:
             return jsonify({"success": False, "message": "El nombre del cliente es obligatorio"}), 400
+        if not dni:
+            return jsonify({"success": False, "message": "El DNI del cliente es obligatorio"}), 400
+        if not dni.isdigit() or len(dni) != 8:
+            return jsonify({"success": False, "message": "El DNI debe tener exactamente 8 dígitos numéricos"}), 400
             
-        id_cliente = crear_cliente_rapido(nombre, telefono, direccion)
+        # Verificar duplicado
+        cliente_existente = buscar_cliente_por_dni(dni)
+        if cliente_existente:
+            return jsonify({"success": False, "message": "Ya existe un cliente registrado con este DNI"}), 400
+            
+        id_cliente = crear_cliente_rapido(nombre, dni, telefono, direccion)
         return jsonify({
             "success": True,
             "id_cliente": id_cliente,
             "nombre": nombre,
+            "dni": dni,
             "message": "Cliente registrado correctamente"
         })
     except Exception as e:

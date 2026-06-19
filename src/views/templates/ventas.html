@@ -476,16 +476,13 @@
             <div id="cart-alert" class="alert-container"></div>
             
             <div class="cart-client-section">
-                <label>Cliente</label>
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Buscar Cliente por DNI</label>
                 <div class="client-select-wrapper">
-                    <select id="cart-cliente" required>
-                        <option value="">Seleccionar cliente...</option>
-                        {% for cliente in clientes %}
-                            <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                    <button class="btn-secondary" type="button" onclick="abrirModal('modalNuevoCliente')">Nuevo Cliente</button>
+                    <input type="text" id="cart-cliente-dni" placeholder="Ingrese DNI (8 dígitos)..." class="form-control" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--pos-border);" maxlength="8" oninput="buscarClienteAlDigitar(this.value)">
+                    <button class="btn-secondary" type="button" onclick="abrirModalNuevoClienteConDni()">Nuevo Cliente</button>
                 </div>
+                <input type="hidden" id="cart-cliente" value="">
+                <div id="client-search-feedback" style="margin-top: 8px; font-size: 0.85rem; display: none; padding: 6px 10px; border-radius: 4px;"></div>
             </div>
             
             <h4 style="margin-bottom: 10px; font-weight: 600;">Detalles de la Venta</h4>
@@ -616,6 +613,10 @@
         </div>
         <div id="modal-client-alert" class="alert-container"></div>
         <form id="form-cliente-rapido" onsubmit="saveClienteRapido(event)">
+            <div class="form-group">
+                <label>DNI (8 dígitos)</label>
+                <input type="text" id="client-dni" required placeholder="DNI del cliente (ej. 88888888)" maxlength="8">
+            </div>
             <div class="form-group">
                 <label>Nombre Completo</label>
                 <input type="text" id="client-name" required placeholder="Nombre y Apellidos">
@@ -939,10 +940,74 @@
         });
     }
 
-    // Guardar Cliente Rapido (AJAX)
+    // Buscar cliente por DNI al digitar
+    function buscarClienteAlDigitar(dni) {
+        const cleanDni = dni.trim();
+        const feedback = document.getElementById("client-search-feedback");
+        const hiddenInput = document.getElementById("cart-cliente");
+        
+        if (cleanDni.length < 8) {
+            feedback.style.display = "none";
+            hiddenInput.value = "";
+            return;
+        }
+        
+        if (!/^\d{8}$/.test(cleanDni)) {
+            feedback.style.background = "var(--pos-danger-bg)";
+            feedback.style.border = "1px solid #ffcdd2";
+            feedback.style.color = "var(--pos-danger)";
+            feedback.innerHTML = "⚠️ El DNI debe contener exactamente 8 dígitos numéricos";
+            feedback.style.display = "block";
+            hiddenInput.value = "";
+            return;
+        }
+        
+        feedback.style.background = "#f0f4f9";
+        feedback.style.border = "1px solid #d0d7de";
+        feedback.style.color = "#555";
+        feedback.innerText = "Buscando cliente...";
+        feedback.style.display = "block";
+        
+        fetch(`/ventas/clientes/buscar/${cleanDni}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                hiddenInput.value = data.cliente.id_cliente;
+                feedback.style.background = "#eef7ee";
+                feedback.style.border = "1px solid #c8e6c9";
+                feedback.style.color = "var(--pos-success)";
+                feedback.innerHTML = `<strong>✅ Cliente:</strong> ${data.cliente.nombre}`;
+            } else {
+                hiddenInput.value = "";
+                feedback.style.background = "#fff3cd";
+                feedback.style.border = "1px solid #ffeeba";
+                feedback.style.color = "#856404";
+                feedback.innerHTML = `<strong>⚠️ No registrado:</strong> DNI ${cleanDni} no encontrado. <a href="#" onclick="abrirModalNuevoClienteConDni('${cleanDni}'); return false;" style="text-decoration: underline; color: #856404; font-weight: bold;">Registrar aquí</a>`;
+            }
+        })
+        .catch(err => {
+            hiddenInput.value = "";
+            feedback.style.background = "var(--pos-danger-bg)";
+            feedback.style.border = "1px solid #ffcdd2";
+            feedback.style.color = "var(--pos-danger)";
+            feedback.innerText = "❌ Error de conexión al buscar cliente";
+        });
+    }
+
+    // Abrir modal autocompletando DNI
+    function abrirModalNuevoClienteConDni(dni = "") {
+        abrirModal('modalNuevoCliente');
+        const dniInput = document.getElementById("client-dni");
+        if (dniInput) {
+            dniInput.value = typeof dni === 'string' ? dni : document.getElementById("cart-cliente-dni").value.trim();
+        }
+    }
+
+    // Guardar Cliente Rápido (AJAX)
     function saveClienteRapido(event) {
         event.preventDefault();
         
+        const dni = document.getElementById("client-dni").value.trim();
         const nombre = document.getElementById("client-name").value.trim();
         const telefono = document.getElementById("client-phone").value.trim();
         const direccion = document.getElementById("client-address").value.trim();
@@ -950,6 +1015,12 @@
         const alertEl = document.getElementById("modal-client-alert");
         alertEl.style.display = "none";
         
+        if (!dni || dni.length !== 8 || !/^\d+$/.test(dni)) {
+            alertEl.className = "alert-container error";
+            alertEl.innerText = "El DNI es obligatorio y debe tener exactamente 8 dígitos numéricos";
+            alertEl.style.display = "block";
+            return;
+        }
         if (!nombre) {
             alertEl.className = "alert-container error";
             alertEl.innerText = "El nombre del cliente es obligatorio";
@@ -960,18 +1031,21 @@
         fetch("/ventas/clientes/rapido", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nombre, telefono, direccion })
+            body: JSON.stringify({ nombre, dni, telefono, direccion })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Registrar cliente en el selector y seleccionarlo
-                const select = document.getElementById("cart-cliente");
-                const opt = document.createElement("option");
-                opt.value = data.id_cliente;
-                opt.innerText = data.nombre;
-                opt.selected = true;
-                select.appendChild(opt);
+                // Registrar cliente y seleccionarlo
+                document.getElementById("cart-cliente-dni").value = data.dni;
+                document.getElementById("cart-cliente").value = data.id_cliente;
+                
+                const feedback = document.getElementById("client-search-feedback");
+                feedback.style.background = "#eef7ee";
+                feedback.style.border = "1px solid #c8e6c9";
+                feedback.style.color = "var(--pos-success)";
+                feedback.innerHTML = `<strong>✅ Cliente:</strong> ${data.nombre}`;
+                feedback.style.display = "block";
                 
                 // Limpiar campos y cerrar modal
                 document.getElementById("form-cliente-rapido").reset();
@@ -984,7 +1058,7 @@
         })
         .catch(err => {
             alertEl.className = "alert-container error";
-            alertEl.innerText = "Fallo la comunicacion con el servidor";
+            alertEl.innerText = "Falló la comunicación con el servidor";
             alertEl.style.display = "block";
         });
     }
@@ -1024,6 +1098,7 @@
                     <div class="receipt-details">
                         <div><strong>Fecha:</strong> ${cab.fecha}</div>
                         <div><strong>Cliente:</strong> ${cab.cliente_nombre}</div>
+                        <div><strong>DNI Cliente:</strong> ${cab.cliente_dni || 'No registrado'}</div>
                         ${cab.cliente_telefono ? `<div><strong>Telf:</strong> ${cab.cliente_telefono}</div>` : ''}
                         ${cab.cliente_direccion ? `<div><strong>Dir:</strong> ${cab.cliente_direccion}</div>` : ''}
                         <div><strong>Cajero:</strong> ${cab.usuario_nombre}</div>

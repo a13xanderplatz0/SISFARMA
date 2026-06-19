@@ -63,6 +63,7 @@ def seed_auditoria_ventas():
             v.id_cliente,
             v.id_usuario,
             c.nombre  AS cliente_nombre,
+            c.dni     AS cliente_dni,
             c.telefono AS cliente_telefono,
             c.direccion AS cliente_direccion,
             u.nombre  AS usuario_nombre,
@@ -139,6 +140,7 @@ def seed_auditoria_ventas():
             "cliente": {
                 "id_cliente": venta['id_cliente'],
                 "nombre":     venta['cliente_nombre'],
+                "dni":        venta.get('cliente_dni') or '',
                 "telefono":   venta['cliente_telefono'] or '',
                 "direccion":  venta['cliente_direccion'] or '',
             },

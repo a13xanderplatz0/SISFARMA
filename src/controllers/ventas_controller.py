@@ -135,7 +135,7 @@ def registrar_venta(id_cliente, id_usuario, productos, metodo_pago):
         # Reconstruir info de usuario y cliente para el snapshot
         cursor.execute("SELECT id_usuario, nombre, rol FROM USUARIO WHERE id_usuario = %s", (id_usuario,))
         usr = cursor.fetchone() or {}
-        cursor.execute("SELECT id_cliente, nombre, telefono, direccion FROM CLIENTE WHERE id_cliente = %s", (id_cliente,))
+        cursor.execute("SELECT id_cliente, nombre, dni, telefono, direccion FROM CLIENTE WHERE id_cliente = %s", (id_cliente,))
         cli = cursor.fetchone() or {}
 
         # Enriquecer cada producto con nombre y categoría para el snapshot
@@ -174,6 +174,7 @@ def registrar_venta(id_cliente, id_usuario, productos, metodo_pago):
             cliente = {
                 "id_cliente": cli.get('id_cliente', id_cliente),
                 "nombre":     cli.get('nombre', ''),
+                "dni":        cli.get('dni', ''),
                 "telefono":   cli.get('telefono', ''),
                 "direccion":  cli.get('direccion', ''),
             },
@@ -220,6 +221,7 @@ def obtener_detalle_venta(id_venta):
             v.fecha,
             v.total,
             c.nombre AS cliente_nombre,
+            c.dni AS cliente_dni,
             c.telefono AS cliente_telefono,
             c.direccion AS cliente_direccion,
             u.nombre AS usuario_nombre,
@@ -308,18 +310,22 @@ def anular_venta(id_venta):
         if conn.is_connected():
             conn.close()
 
-def crear_cliente_rapido(nombre, telefono, direccion):
-    query = "INSERT INTO CLIENTE (nombre, telefono, direccion) VALUES (%s, %s, %s)"
+def crear_cliente_rapido(nombre, dni, telefono, direccion):
+    query = "INSERT INTO CLIENTE (nombre, dni, telefono, direccion) VALUES (%s, %s, %s, %s)"
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute(query, (nombre, telefono, direccion))
+        cursor.execute(query, (nombre, dni, telefono, direccion))
         conn.commit()
         return cursor.lastrowid
     finally:
         cursor.close()
         if conn.is_connected():
             conn.close()
+
+def buscar_cliente_por_dni(dni):
+    query = "SELECT id_cliente, nombre, dni, telefono, direccion FROM CLIENTE WHERE dni = %s"
+    return execute_query(query, (dni,), fetch_one=True)
 
 def obtener_reporte_rendimiento(min_ingreso):
     query = """
