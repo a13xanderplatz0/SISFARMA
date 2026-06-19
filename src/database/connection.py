@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import Error, pooling
 
 # ---------------------------------------------------------------------------
 # Determine which database to connect to: 'local' or 'online'
@@ -102,8 +102,45 @@ def _connect_with_plugin_config(config: dict):
     raise last_error
 
 
+_db_pool = None
+
 def get_connection():
-    return _connect_with_plugin_config(_build_connection_config(include_database=True))
+    global _db_pool
+    if _db_pool is None:
+        config = _build_connection_config(include_database=True)
+        supplied_plugin = os.getenv('MYSQL_AUTH_PLUGIN')
+        auth_plugins = (
+            [supplied_plugin]
+            if supplied_plugin
+            else [None, 'mysql_native_password', 'caching_sha2_password']
+        )
+
+        working_config = None
+        last_error = None
+        for plugin in auth_plugins:
+            connection_params = config.copy()
+            if plugin:
+                connection_params['auth_plugin'] = plugin
+            try:
+                conn = mysql.connector.connect(**connection_params)
+                conn.close()
+                working_config = connection_params
+                break
+            except Error as err:
+                last_error = err
+                continue
+
+        if working_config is None:
+            raise last_error if last_error else Error("Could not connect to database")
+
+        _db_pool = pooling.MySQLConnectionPool(
+            pool_name="sisfarmapool",
+            pool_size=10,
+            pool_reset_session=True,
+            **working_config
+        )
+
+    return _db_pool.get_connection()
 
 
 def get_server_connection():
