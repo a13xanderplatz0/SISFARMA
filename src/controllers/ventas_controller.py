@@ -1,5 +1,6 @@
 from datetime import date
 from src.database.connection import get_connection, execute_query
+from src.models.auditoria_model import registrar_auditoria_venta, registrar_auditoria_anulacion
 
 def listar_productos_y_clientes():
     medicamentos_query = """
@@ -127,6 +128,64 @@ def registrar_venta(id_cliente, id_usuario, productos, metodo_pago):
         cursor.execute(query_historial, (desc_historial, id_cliente, id_venta))
         
         conn.commit()
+
+        # ------------------------------------------------------------------
+        # AUDITORÍA MONGODB (best-effort — no revierte la venta si falla)
+        # ------------------------------------------------------------------
+        # Reconstruir info de usuario y cliente para el snapshot
+        cursor.execute("SELECT id_usuario, nombre, rol FROM USUARIO WHERE id_usuario = %s", (id_usuario,))
+        usr = cursor.fetchone() or {}
+        cursor.execute("SELECT id_cliente, nombre, telefono, direccion FROM CLIENTE WHERE id_cliente = %s", (id_cliente,))
+        cli = cursor.fetchone() or {}
+
+        # Enriquecer cada producto con nombre y categoría para el snapshot
+        productos_snapshot = []
+        for det in detalles_a_insertar:
+            cursor.execute("""
+                SELECT m.nombre, c.nombre AS categoria
+                FROM MEDICAMENTO m
+                JOIN CATEGORIA c ON m.id_categoria = c.id_categoria
+                WHERE m.id_medicamento = %s
+            """, (det['id_medicamento'],))
+            info = cursor.fetchone() or {}
+            # Identificar qué lotes se descontaron para este medicamento
+            lotes_med = [
+                lote['numero_lote']
+                for lote in lotes
+                if lote.get('id_inventario') in [l[1] for l in lotes_a_actualizar]
+            ]
+            productos_snapshot.append({
+                "id_medicamento":  det['id_medicamento'],
+                "nombre":          info.get('nombre', ''),
+                "categoria":       info.get('categoria', ''),
+                "cantidad":        det['cantidad'],
+                "precio_unitario": float(det['precio_unitario']),
+                "subtotal":        float(det['precio_unitario']) * det['cantidad'],
+                "lotes_descontados": lotes_med,
+            })
+
+        registrar_auditoria_venta(
+            id_venta_mysql = id_venta,
+            usuario = {
+                "id_usuario": usr.get('id_usuario', id_usuario),
+                "nombre":     usr.get('nombre', ''),
+                "rol":        usr.get('rol', ''),
+            },
+            cliente = {
+                "id_cliente": cli.get('id_cliente', id_cliente),
+                "nombre":     cli.get('nombre', ''),
+                "telefono":   cli.get('telefono', ''),
+                "direccion":  cli.get('direccion', ''),
+            },
+            productos = productos_snapshot,
+            pago = {
+                "metodo":      metodo_pago,
+                "monto_total": round(total_venta, 2),
+            },
+            metadata = {"canal": "presencial"},
+        )
+        # ------------------------------------------------------------------
+
         return id_venta
         
     except Exception as e:
@@ -222,8 +281,24 @@ def anular_venta(id_venta):
         
         # 3. Eliminar la venta (provoca borrado en cascada)
         cursor.execute("DELETE FROM VENTA WHERE id_venta = %s", (id_venta,))
-        
+
         conn.commit()
+
+        # ------------------------------------------------------------------
+        # AUDITORÍA MONGODB — registrar anulación (best-effort)
+        # ------------------------------------------------------------------
+        stock_repuesto_snapshot = [
+            {"id_medicamento": it['id_medicamento'], "cantidad": it['cantidad']}
+            for it in items
+        ]
+        registrar_auditoria_anulacion(
+            id_venta_mysql = id_venta,
+            usuario        = {"id_usuario": 0, "nombre": "Sistema", "rol": "Sistema"},
+            motivo         = "Anulación solicitada desde la interfaz",
+            stock_repuesto = stock_repuesto_snapshot,
+        )
+        # ------------------------------------------------------------------
+
         return True
     except Exception as e:
         conn.rollback()

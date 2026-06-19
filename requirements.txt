@@ -1,5 +1,6 @@
 Flask
 python-dotenv
 mysql-connector-python
+pymongo
 reportlab
-gunicorn
+gunicorn

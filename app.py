@@ -12,6 +12,8 @@ from src.routes.auth import auth_bp
 
 from src.controllers.reportes_controller import reportes_bp
 from src.database.setup import init_database
+from src.database.mongo_seed import run_seed
+from src.database.mongo_connection import get_collection
 
 
 app = Flask(
@@ -57,7 +59,21 @@ CLIENTES_DB = [
 
 if __name__ == '__main__':
     init_database()
-    port = int(os.getenv('PORT', 5050))
-    host = os.getenv('HOST', '0.0.0.0')
+    # Seed MongoDB solo si la coleccion de auditoria esta vacia
+    try:
+        if get_collection("auditoria_ventas").count_documents({}) == 0:
+            run_seed()
+        else:
+            print("[MongoDB] Coleccion 'auditoria_ventas' ya contiene datos, seed omitido.")
+    except Exception as e:
+        print(f"[MongoDB] Advertencia: no se pudo verificar/ejecutar el seed: {e}")
+    port  = int(os.getenv('PORT', 5050))
+    host  = os.getenv('HOST', '0.0.0.0')
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
-    app.run(host=host, port=port, debug=debug)
+
+    # WinError 10038: bug de Python 3.14 + Werkzeug en Windows con el reloader.
+    # use_reloader=False lo evita; el resto del debug (errores en pantalla) sigue activo.
+    import sys
+    use_reloader = sys.platform != 'win32'
+
+    app.run(host=host, port=port, debug=debug, use_reloader=use_reloader)
