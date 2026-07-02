@@ -8,26 +8,77 @@
 </head>
 <body>
     <div class="dashboard-container">
+
         <aside class="sidebar" style="display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; padding-bottom: 20px; position: sticky; top: 0;">
+
             <div>
+
                 <div class="logo">💊 SISFARMA</div>
+
                 <nav>
                     <ul>
-                        <li><a href="/ventas">Ventas</a></li>
-                        <li><a href="/inventario">Inventario</a></li>
-                        <li><a href="/medicamentos">Medicamentos</a></li> 
+
+                        <li>
+                            <a href="/ventas"
+                               class="{% if request.path.startswith('/ventas') %}active{% endif %}">
+                                Ventas
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/inventario"
+                               class="{% if request.path.startswith('/inventario') %}active{% endif %}">
+                                Inventario
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/medicamentos"
+                               class="{% if request.path.startswith('/medicamentos') %}active{% endif %}">
+                                Medicamentos
+                            </a>
+                        </li>
+
                         {% if current_user and current_user.rol == 'Administrador' %}
-                            <li><a href="/proveedores">Proveedores</a></li>
-                            <li><a href="/compras">Compras a Proveedores</a></li>
-                            <li><a href="/usuarios">Personal</a></li>
-                            <li><a href="/reportes">Reportes</a></li>
+
+                        <li>
+                            <a href="/proveedores"
+                               class="{% if request.path.startswith('/proveedores') %}active{% endif %}">
+                                Proveedores
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/compras"
+                               class="{% if request.path.startswith('/compras') %}active{% endif %}">
+                                Compras a Proveedores
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/usuarios"
+                               class="{% if request.path.startswith('/usuarios') %}active{% endif %}">
+                                Personal
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/reportes"
+                               class="{% if request.path.startswith('/reportes') %}active{% endif %}">
+                                Reportes
+                            </a>
+                        </li>
+
                         {% endif %}
+
                     </ul>
                 </nav>
+
             </div>
-            
+
             <div style="margin-top: auto; padding: 0 15px;">
-                <a href="/logout" style="background-color: #ef4444; color: white; text-decoration: none; font-weight: bold; display: block; padding: 12px; border-radius: 8px; text-align: center; transition: background 0.2s;">
+                <a href="/logout"
+                   style="background-color:#ef4444;color:white;text-decoration:none;font-weight:bold;display:block;padding:12px;border-radius:8px;text-align:center;transition:background .2s;">
                     Cerrar Sesión
                 </a>
             </div>
@@ -35,17 +86,21 @@
         </aside>
 
         <main class="main-content">
+
             <header>
                 <div class="user-info">
                     <span>Bienvenido, {{ current_user.nombre if current_user else 'Invitado' }}</span>
                     <span class="role-badge">{{ current_user.rol if current_user else '' }}</span>
                 </div>
             </header>
-            
+
             <section class="content-body">
                 {% block content %}{% endblock %}
             </section>
+
         </main>
+
     </div>
 </body>
 </html>
+```
