@@ -103,10 +103,37 @@ def init_database():
         _ensure_column(connection, 'MEDICAMENTO', 'activo', 'activo BOOLEAN NOT NULL DEFAULT TRUE')
         _ensure_column(connection, 'PROVEEDOR', 'activo', 'activo BOOLEAN NOT NULL DEFAULT TRUE')
         _ensure_column(connection, 'CLIENTE', 'dni', 'dni VARCHAR(8) UNIQUE')
+        _hash_plaintext_passwords(connection)
     finally:
         cursor.close()
         if connection.is_connected():
             connection.close()
+
+
+def _hash_plaintext_passwords(connection):
+    from werkzeug.security import generate_password_hash
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT id_usuario, contrasena FROM USUARIO")
+        usuarios = cursor.fetchall()
+        for u in usuarios:
+            pwd = u['contrasena']
+            if pwd and not pwd.startswith(('scrypt:', 'pbkdf2:', 'argon2:')):
+                hashed_pwd = generate_password_hash(pwd)
+                update_cursor = connection.cursor()
+                try:
+                    update_cursor.execute(
+                        "UPDATE USUARIO SET contrasena = %s WHERE id_usuario = %s",
+                        (hashed_pwd, u['id_usuario'])
+                    )
+                    connection.commit()
+                    print(f"[Database Setup] Hasheada contrasena para id_usuario={u['id_usuario']}.")
+                finally:
+                    update_cursor.close()
+    except Exception as e:
+        print(f"[Database Setup] Advertencia al hashear contrasenas existentes: {e}")
+    finally:
+        cursor.close()
 
 
 if __name__ == '__main__':

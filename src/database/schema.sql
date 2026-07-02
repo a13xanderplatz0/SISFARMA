@@ -150,11 +150,12 @@ CREATE TABLE REPORTE (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO USUARIO (nombre, rol, contrasena, id_supervisor) VALUES
-('Juan Perez', 'Administrador', '1234', NULL),
-('Ana Gómez', 'Administrador', 'AnaG12', NULL),
-('Maria Torres', 'Farmacéutico', 'MariaT12', 1),
-('María Delgado', 'Farmacéutico', 'MariaD34', 1),
-('Jorge Ramírez', 'Farmacéutico', 'JorgeR31', 2);
+-- Contraseñas originales en orden: '1234', 'AnaG12', 'MariaT12', 'MariaD34', 'JorgeR31'
+('Juan Perez', 'Administrador', 'scrypt:32768:8:1$hZVbjcl1iV8M0aNc$563919f0ff0bee16eabdfe5ff77305cc123c73c0ab6e6956f88c1faec52ada6df50b477b5288c5c2c715dd343854d92c4d5676c743255c988c15cad3f95de494', NULL),
+('Ana Gómez', 'Administrador', 'scrypt:32768:8:1$Kf7dUcyd6kGZwoIG$baa371974f66753700b8888a3073715084009e3351314538149bd4a75ed3b03980eff1bc3246c28bf16f205413946c26ba12cd44a2f74f4ac87eda082b159b9e', NULL),
+('Maria Torres', 'Farmacéutico', 'scrypt:32768:8:1$iubfXcKWfJlXAThP$011e71883186117889f6d46efba52cf45559960ee16579986e097444e3e16c191d63529a481f3a940c3fc57aa300d6be3939d27670fdc925b52f28b2c2c01b0b', 1),
+('María Delgado', 'Farmacéutico', 'scrypt:32768:8:1$LCc9Xs7CnbMqa5x3$49293a98818ae50a2594e40142bae3e2934207e72f5ea4b431a0f7877de9155b82a2d761e10876b8bc4a442f65ffae27eb0412b51f42e7df00c82189b9fee8cc', 1),
+('Jorge Ramírez', 'Farmacéutico', 'scrypt:32768:8:1$uF91oNiKnRMah79P$92f59d5b13a9da6dae084e7d1c435dfb7b80affb09eee34a4cf728bc2d1e38533928a0e55bbb7e88d9aabedf1574d27bb53db6ccd8785d7fa57603483f337be7', 2);
 
 INSERT INTO PROVEEDOR (nombre, telefono, direccion) VALUES
 ('Laboratorios FarmaSalud S.A.', '+51 987654321', 'Av. De la Salud 123, Lima'),
