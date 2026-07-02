@@ -116,7 +116,6 @@ def query_compras_por_proveedor(fecha_inicio, fecha_fin):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Detalle de compras (NO TOCAR)
     cursor.execute("""
         SELECT
             c.id_compra,
@@ -143,7 +142,6 @@ def query_compras_por_proveedor(fecha_inicio, fecha_fin):
     compras = cursor.fetchall()
 
 
-    # Resumen por proveedor (AQUÍ va el HAVING)
     cursor.execute("""
         SELECT
             p.nombre AS proveedor,
