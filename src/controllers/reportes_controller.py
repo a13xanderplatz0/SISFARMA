@@ -115,6 +115,7 @@ def query_inventario():
 def query_compras_por_proveedor(fecha_inicio, fecha_fin):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
+
     cursor.execute("""
         SELECT
             c.id_compra,
@@ -122,33 +123,58 @@ def query_compras_por_proveedor(fecha_inicio, fecha_fin):
             p.nombre AS proveedor,
             u.nombre AS registrado_por,
             c.estado,
-            COALESCE(SUM(dc.precio * dc.cantidad), 0) AS total_compra
+            COALESCE(SUM(dc.precio * dc.cantidad),0) AS total_compra
         FROM COMPRA c
         JOIN PROVEEDOR p ON c.id_proveedor = p.id_proveedor
         JOIN USUARIO u ON c.id_usuario = u.id_usuario
-        LEFT JOIN DETALLE_COMPRA dc ON dc.id_compra = c.id_compra
+        LEFT JOIN DETALLE_COMPRA dc
+            ON dc.id_compra = c.id_compra
         WHERE c.fecha BETWEEN %s AND %s
-        GROUP BY c.id_compra, c.fecha, p.nombre, u.nombre, c.estado
+        GROUP BY
+            c.id_compra,
+            c.fecha,
+            p.nombre,
+            u.nombre,
+            c.estado
         ORDER BY c.fecha DESC
-    """, (fecha_inicio, fecha_fin))
+    """,(fecha_inicio,fecha_fin))
+
     compras = cursor.fetchall()
+
 
     cursor.execute("""
         SELECT
             p.nombre AS proveedor,
-            COUNT(c.id_compra) AS num_compras,
-            COALESCE(SUM(dc.precio * dc.cantidad), 0) AS total_invertido
+            COUNT(DISTINCT c.id_compra) AS num_compras,
+            COALESCE(SUM(dc.precio*dc.cantidad),0) AS total_invertido
+
         FROM COMPRA c
-        JOIN PROVEEDOR p ON c.id_proveedor = p.id_proveedor
-        LEFT JOIN DETALLE_COMPRA dc ON dc.id_compra = c.id_compra
+
+        JOIN PROVEEDOR p
+            ON c.id_proveedor=p.id_proveedor
+
+        JOIN DETALLE_COMPRA dc
+            ON dc.id_compra=c.id_compra
+
+        JOIN MEDICAMENTO m
+            ON dc.id_medicamento=m.id_medicamento
+
         WHERE c.fecha BETWEEN %s AND %s
-        GROUP BY p.id_proveedor, p.nombre
+
+        GROUP BY
+            p.id_proveedor,
+            p.nombre
+
+        HAVING SUM(dc.precio*dc.cantidad) > 100
+
         ORDER BY total_invertido DESC
-    """, (fecha_inicio, fecha_fin))
+    """,(fecha_inicio,fecha_fin))
+
     por_proveedor = cursor.fetchall()
 
     cursor.close()
     conn.close()
+
     return compras, por_proveedor
 
 
